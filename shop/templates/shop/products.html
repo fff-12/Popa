@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Продукти</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <ul>
+        {% for product in products %}
+            <li>{{ product }}</li>
+        {% endfor %}
+    </ul>
+    
+    <nav>
+        <a href="{% url 'shop:home' %}">← Повернутися на головну</a>
+    </nav>
+</body>
+</html>
