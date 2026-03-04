@@ -1,4 +1,5 @@
 # 🐍 Путівник: Лабораторні 3 і 4 — Django
+### + Як працює веб під капотом: HTTP, запити, цикл запит-відповідь
 
 ---
 
@@ -15,9 +16,372 @@
 | **render()** | Функція, що поєднує шаблон + дані і повертає HTML |
 | **context** | Словник `{'ключ': значення}` — дані, що передаються в шаблон |
 | **Admin panel** | Вбудована адмінка Django за адресою `/admin/` |
-| **Migration** | Файл з інструкцією "як змінити базу даних" (створити таблицю, додати колонку тощо) |
+| **Migration** | Файл з інструкцією "як змінити базу даних" |
 | **ForeignKey** | Поле, що зв'язує одну таблицю з іншою (відношення "багато до одного") |
 | **`__str__`** | Магічний метод Python — визначає, як об'єкт відображається як рядок |
+| **HTTP** | Протокол передачі даних між браузером і сервером |
+| **Request** | Запит від браузера до сервера |
+| **Response** | Відповідь сервера браузеру |
+| **Status Code** | Числовий код відповіді (200 = ОК, 404 = не знайдено, тощо) |
+| **WSGI** | Інтерфейс між веб-сервером і Django-додатком |
+| **Middleware** | "Проміжне ПЗ" — шар коду, що обробляє кожен запит/відповідь |
+
+---
+
+# 🌐 РОЗДІЛ 0 — Як працює веб під капотом
+
+> Перш ніж писати код, важливо зрозуміти що взагалі відбувається коли ти вводиш адресу сайту і натискаєш Enter.
+
+---
+
+## 0.1 — Що таке HTTP?
+
+**HTTP (HyperText Transfer Protocol)** — це мова спілкування між браузером і сервером.
+
+Все будується на простій моделі: **Запит → Відповідь (Request → Response)**
+
+```
+Браузер                             Сервер (Django)
+   |                                      |
+   |  —— GET /about/ HTTP/1.1 ——————————> |
+   |                                      |  (обробляє запит)
+   |  <—— HTTP/1.1 200 OK + HTML ———————— |
+   |                                      |
+```
+
+**Аналогія:** Ти дзвониш у піцерію (запит), вони готують і привозять піцу (відповідь). HTTP — це сценарій цієї розмови.
+
+---
+
+## 0.2 — HTTP Методи (дієслова запиту)
+
+HTTP-запит завжди має **метод** — дієслово, яке каже серверу ЩО ти хочеш зробити.
+
+| Метод | Призначення | Аналогія | Приклад у Django |
+|---|---|---|---|
+| **GET** | Отримати дані (прочитати) | Подивитись меню | Відкрити сторінку `/catalog/` |
+| **POST** | Надіслати нові дані | Зробити замовлення | Відправити форму реєстрації |
+| **PUT** | Замінити існуючі дані повністю | Переписати замовлення | Оновити весь профіль |
+| **PATCH** | Оновити частину даних | Змінити тільки email | Оновити одне поле профілю |
+| **DELETE** | Видалити дані | Скасувати замовлення | Видалити запис |
+
+> **Важливо:** У звичайних HTML-формах браузер вміє лише `GET` і `POST`. Решта методів використовується в REST API.
+
+### GET vs POST — ключова різниця:
+
+```
+GET /search/?q=python&page=2
+    ↑ дані передаються прямо в URL (видно всім!)
+
+POST /login/
+Content-Type: application/x-www-form-urlencoded
+
+username=vasyl&password=secret123
+    ↑ дані у тілі запиту (приховані від URL, але не зашифровані без HTTPS!)
+```
+
+---
+
+## 0.3 — HTTP Статус-коди відповіді
+
+Сервер завжди повертає числовий код, що позначає результат:
+
+| Код | Група | Що означає | Приклади |
+|---|---|---|---|
+| **2xx** | ✅ Успіх | Запит оброблено успішно | `200 OK`, `201 Created` |
+| **3xx** | ↪️ Перенаправлення | Шукай в іншому місці | `301 Moved Permanently`, `302 Found` |
+| **4xx** | ❌ Помилка клієнта | Ти щось зробив не так | `400 Bad Request`, `403 Forbidden`, `404 Not Found` |
+| **5xx** | 💥 Помилка сервера | Сервер зламався | `500 Internal Server Error` |
+
+### Найважливіші:
+
+```
+200 OK           — все добре, ось твій HTML
+201 Created      — новий запис створено (після POST)
+301 Redirect     — сторінка переїхала назавжди
+302 Redirect     — тимчасовий редирект (Django часто використовує після POST)
+400 Bad Request  — некоректний запит
+403 Forbidden    — немає доступу (не залогінений або без прав)
+404 Not Found    — сторінка не існує
+500 Server Error — помилка в Python-коді на сервері
+```
+
+---
+
+## 0.4 — Структура HTTP-запиту
+
+Кожен запит складається з трьох частин:
+
+```http
+GET /catalog/?category=electronics HTTP/1.1
+Host: example.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0)
+Accept: text/html,application/xhtml+xml
+Accept-Language: uk-UA,uk;q=0.9
+Cookie: sessionid=abc123; csrftoken=xyz789
+Connection: keep-alive
+
+(тут порожній рядок, тіло відсутнє для GET)
+```
+
+**Частини запиту:**
+1. **Стартовий рядок** — метод + URL + версія протоколу
+2. **Заголовки (Headers)** — метадані: хто запитує, що приймає, cookies
+3. **Тіло (Body)** — дані (лише у POST/PUT/PATCH)
+
+---
+
+## 0.5 — Структура HTTP-відповіді
+
+```http
+HTTP/1.1 200 OK
+Date: Mon, 03 Mar 2026 12:00:00 GMT
+Server: WSGIServer/0.2 CPython/3.11
+Content-Type: text/html; charset=utf-8
+Content-Length: 1547
+Set-Cookie: sessionid=abc123; HttpOnly; Path=/
+
+<!DOCTYPE html>
+<html>
+  <head><title>Каталог товарів</title></head>
+  <body>...</body>
+</html>
+```
+
+**Частини відповіді:**
+1. **Стартовий рядок** — версія + статус-код + текст статусу
+2. **Заголовки** — тип контенту, довжина, cookies, кешування
+3. **Тіло** — HTML, JSON, файл або що завгодно
+
+---
+
+## 0.6 — Повний шлях запиту: від браузера до Django і назад
+
+### Сценарій: користувач відкриває `http://127.0.0.1:8000/catalog/`
+
+```
+КРОК 1: Браузер
+┌─────────────────────────────────────────────────┐
+│ Користувач вводить URL або натискає посилання   │
+│ Браузер формує HTTP GET запит                   │
+│ GET /catalog/ HTTP/1.1                          │
+│ Host: 127.0.0.1:8000                            │
+└────────────────────┬────────────────────────────┘
+                     │ TCP з'єднання
+                     ▼
+КРОК 2: Django Development Server (manage.py runserver)
+┌─────────────────────────────────────────────────┐
+│ Приймає TCP-з'єднання                           │
+│ Парсить HTTP-запит                              │
+│ Створює об'єкт HttpRequest                      │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+КРОК 3: MIDDLEWARE (проміжна обробка)
+┌─────────────────────────────────────────────────┐
+│ SecurityMiddleware  → перевірка безпеки         │
+│ SessionMiddleware   → завантаження сесії        │
+│ AuthenticationMiddleware → хто це?             │
+│ CsrfViewMiddleware → захист від CSRF            │
+│ ... (проходить через всі middlewares)           │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+КРОК 4: URL Router (urls.py)
+┌─────────────────────────────────────────────────┐
+│ Django дивиться на /catalog/                    │
+│ Порівнює з urlpatterns у myproject/urls.py      │
+│ → include('pages.urls')                         │
+│ Порівнює з urlpatterns у pages/urls.py          │
+│ → path('catalog/', views.catalog)  ✓ ЗБІГ!     │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+КРОК 5: View (views.py)
+┌─────────────────────────────────────────────────┐
+│ def catalog(request):                           │
+│     context = {                                 │
+│         'title': 'Каталог',                     │
+│         'items': ['Товар 1', 'Товар 2']         │
+│     }                                           │
+│     return render(request, 'catalog.html', ctx) │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+КРОК 6: Template Engine (шаблонізатор)
+┌─────────────────────────────────────────────────┐
+│ Завантажує catalog.html                         │
+│ Підставляє {{ title }} → 'Каталог'              │
+│ Виконує {% for item in items %} → рядки HTML   │
+│ Генерує готовий HTML-рядок                      │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+КРОК 7: HttpResponse
+┌─────────────────────────────────────────────────┐
+│ Django формує HTTP-відповідь:                   │
+│ HTTP/1.1 200 OK                                 │
+│ Content-Type: text/html; charset=utf-8          │
+│                                                 │
+│ <!DOCTYPE html>...готовий HTML...               │
+└────────────────────┬────────────────────────────┘
+                     │ MIDDLEWARE (у зворотньому порядку)
+                     ▼
+КРОК 8: Браузер
+┌─────────────────────────────────────────────────┐
+│ Отримує HTML                                    │
+│ Парсить HTML, CSS, JS                           │
+│ Рендерить сторінку на екрані                    │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## 0.7 — Що таке об'єкт `request` у Django?
+
+Коли Django викликає твою функцію-view, він передає їй об'єкт `request` — це **вся інформація про HTTP-запит**.
+
+```python
+def my_view(request):
+    # Метод запиту
+    request.method          # 'GET' або 'POST'
+    
+    # URL параметри (?q=python&page=2)
+    request.GET             # QueryDict: {'q': ['python'], 'page': ['2']}
+    request.GET.get('q')    # 'python'
+    
+    # Дані POST-форми
+    request.POST            # QueryDict з даними форми
+    request.POST.get('username')
+    
+    # Файли з форми
+    request.FILES           # завантажені файли
+    
+    # Cookies
+    request.COOKIES         # словник cookies
+    
+    # Сесія (дані конкретного користувача)
+    request.session         # схоже на словник
+    request.session['cart'] = [1, 2, 3]
+    
+    # Поточний користувач (якщо є авторизація)
+    request.user            # об'єкт User або AnonymousUser
+    request.user.is_authenticated  # True якщо залогінений
+    
+    # Заголовки запиту
+    request.META            # великий словник зі всіма даними
+    request.META['HTTP_USER_AGENT']  # браузер користувача
+    request.META['REMOTE_ADDR']      # IP-адреса
+    
+    # Повний URL
+    request.path            # '/catalog/'
+    request.get_full_path() # '/catalog/?category=electronics'
+    request.build_absolute_uri()  # 'http://127.0.0.1:8000/catalog/'
+```
+
+---
+
+## 0.8 — GET vs POST у Django: практичний приклад
+
+### Форма пошуку (GET — дані в URL):
+
+```python
+# views.py
+def search(request):
+    query = request.GET.get('q', '')  # '' — значення за замовчуванням
+    results = []
+    
+    if query:
+        results = Product.objects.filter(name__icontains=query)
+    
+    return render(request, 'search.html', {
+        'query': query,
+        'results': results
+    })
+```
+
+```html
+<!-- search.html -->
+<form method="GET" action="{% url 'search' %}">
+    <input type="text" name="q" value="{{ query }}">
+    <button type="submit">Пошук</button>
+</form>
+<!-- Після відправки URL стане: /search/?q=iphone -->
+```
+
+### Форма реєстрації (POST — дані приховані):
+
+```python
+# views.py
+def register(request):
+    if request.method == 'POST':
+        # Обробка форми
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        # ... створити користувача ...
+        return redirect('home')  # POST → redirect → GET (патерн PRG)
+    else:
+        # Просто показати порожню форму
+        return render(request, 'register.html')
+```
+
+> **Патерн PRG (Post-Redirect-Get):**  
+> Після успішного POST завжди роби `redirect()`. Без цього — при оновленні сторінки браузер знову надішле POST-запит (двічі відправить форму!).
+
+---
+
+## 0.9 — Що таке Middleware?
+
+Middleware — це шари коду, через які проходить кожен запит і відповідь.
+
+```
+Запит  →  [MW1] → [MW2] → [MW3] → View → [MW3] → [MW2] → [MW1] → Відповідь
+```
+
+Django вже має вбудовані Middleware у `settings.py`:
+
+```python
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    # Додає заголовки безпеки (HSTS, XSS-protection...)
+    
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    # Завантажує сесію користувача з бази або cookies
+    
+    'django.middleware.common.CommonMiddleware',
+    # Додає слеш в кінці URL, якщо APPEND_SLASH=True
+    
+    'django.middleware.csrf.CsrfViewMiddleware',
+    # Захист від CSRF-атак (підробка запитів)
+    
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Прив'язує request.user до поточного запиту
+    
+    'django.contrib.messages.middleware.MessageMiddleware',
+    # Одноразові повідомлення (flash messages)
+]
+```
+
+---
+
+## 0.10 — Що таке CSRF і навіщо `{% csrf_token %}`?
+
+**CSRF (Cross-Site Request Forgery)** — атака, коли шкідливий сайт змушує браузер користувача виконати дію на твоєму сайті від його імені.
+
+**Захист:** Django додає до кожної POST-форми секретний токен, який сервер перевіряє.
+
+```html
+<!-- ОБОВ'ЯЗКОВО для будь-якої POST-форми! -->
+<form method="POST">
+    {% csrf_token %}
+    <!-- ↑ додає прихований input: <input type="hidden" name="csrfmiddlewaretoken" value="..."> -->
+    
+    <input type="text" name="username">
+    <button type="submit">Надіслати</button>
+</form>
+```
+
+> Якщо забудеш `{% csrf_token %}` — Django поверне `403 Forbidden`.
 
 ---
 
@@ -64,8 +428,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-> **Навіщо?**  
-> Django не знає про існування твоєї аплікації, поки ти її не зареєструєш тут.
+> **Навіщо?** Django не знає про існування твоєї аплікації, поки ти її не зареєструєш тут.
 
 ---
 
@@ -120,7 +483,7 @@ def catalog(request):
 > `render(request, template_name, context)` — функція, яка:
 > 1. Бере шаблон (HTML-файл)
 > 2. Вставляє в нього дані з `context`
-> 3. Повертає готовий HTML клієнту
+> 3. Повертає об'єкт `HttpResponse` зі статусом 200 і готовим HTML
 
 > **Що таке `context`?**  
 > Це звичайний Python-словник. Ключі стають змінними всередині шаблону.  
@@ -161,6 +524,22 @@ urlpatterns = [
 ```
 
 > **`include()`** — говорить Django: "для всіх URL, що починаються з `''`, шукай далі у `pages.urls`"
+
+### 4.3 Як Django обробляє URL — детально
+
+```
+Запит: GET /about/
+
+1. Django дивиться urlpatterns у myproject/urls.py:
+   - path('admin/', ...) — не збігається
+   - path('', include('pages.urls')) — '' збігається! Передає '/about/' далі
+
+2. Django дивиться urlpatterns у pages/urls.py:
+   - path('', views.home) — не збігається (залишок '/about/', а не '')
+   - path('about/', views.about) — ЗБІГ! Викликає views.about(request)
+
+3. Якщо нічого не збіглося → 404 Not Found
+```
 
 ---
 
@@ -287,6 +666,25 @@ python manage.py runserver
 
 Відкрий браузер: `http://127.0.0.1:8000/`
 
+### Як побачити HTTP-запити в консолі?
+
+Коли `runserver` активний, кожен запит логується:
+
+```
+[03/Mar/2026 12:00:00] "GET / HTTP/1.1" 200 1547
+[03/Mar/2026 12:00:01] "GET /about/ HTTP/1.1" 200 1203
+[03/Mar/2026 12:00:02] "GET /favicon.ico HTTP/1.1" 404 2217
+                           ↑              ↑   ↑
+                         метод+URL   статус  розмір відповіді (байти)
+```
+
+### Як побачити HTTP-запит у браузері?
+
+1. Відкрий **DevTools** (F12)
+2. Перейди на вкладку **Network**
+3. Обнови сторінку
+4. Клікни на будь-який запит — побачиш заголовки, відповідь, cookies
+
 ---
 
 ## Крок 7 — Комміт на GitHub
@@ -320,6 +718,19 @@ class Product(models.Model):
 
 Це **ORM (Object-Relational Mapping)** — ти працюєш з об'єктами Python, а не пишеш SQL вручну.
 
+### ORM vs SQL — порівняння:
+
+```python
+# Django ORM (Python)
+Product.objects.filter(category__name='Електроніка', price__lte=50000)
+
+# Еквівалентний SQL
+SELECT * FROM pages_product
+JOIN pages_category ON pages_product.category_id = pages_category.id
+WHERE pages_category.name = 'Електроніка'
+AND pages_product.price <= 50000;
+```
+
 ---
 
 ## Крок 1 — Вибрати тему і придумати таблиці
@@ -340,7 +751,7 @@ class Product(models.Model):
 
 ## Крок 2 — Написати моделі
 
-Відкрий файл `pages/models.py` (або твоєї аплікації):
+Відкрий файл `pages/models.py`:
 
 ```python
 from django.db import models
@@ -468,7 +879,28 @@ python manage.py migrate
 
 > **Важливо:** щоразу коли ти змінюєш `models.py` — потрібно знову робити `makemigrations` і `migrate`.
 
-Після виконання у `pages/migrations/` з'явиться файл `0001_initial.py` — це і є інструкція для БД.
+Після виконання у `pages/migrations/` з'явиться файл `0001_initial.py` — це і є SQL-інструкція для БД.
+
+### Що робить Django всередині:
+
+```
+makemigrations:
+  Python-клас Category → 0001_initial.py (план змін)
+
+migrate:
+  0001_initial.py → SQL → виконує в SQLite:
+  
+  CREATE TABLE "pages_category" (
+      "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+      "name" varchar(200) NOT NULL,
+      "description" text NOT NULL,
+      "created_at" datetime NOT NULL,
+      "updated_at" datetime NOT NULL
+  );
+```
+
+> Django автоматично додає поле `id` (первинний ключ) якщо ти не вказав своє.  
+> Назва таблиці: `{app_name}_{model_name}` → `pages_category`, `pages_product`
 
 ---
 
@@ -483,16 +915,9 @@ from .models import Category, Product, Order
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    # list_display — які колонки показувати у списку записів
     list_display = ('name', 'created_at', 'updated_at')
-    
-    # list_filter — фільтри праворуч
     list_filter = ('created_at',)
-    
-    # search_fields — поля для пошуку
     search_fields = ('name', 'description')
-    
-    # readonly_fields — поля лише для читання (не можна редагувати вручну)
     readonly_fields = ('created_at', 'updated_at')
 
 
@@ -502,8 +927,6 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('category', 'is_available', 'created_at')
     search_fields = ('name',)
     readonly_fields = ('created_at', 'updated_at')
-    
-    # list_editable — поля, які можна редагувати прямо зі списку
     list_editable = ('price', 'stock', 'is_available')
 
 
@@ -515,8 +938,7 @@ class OrderAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at')
 ```
 
-> **`@admin.register(Model)`** — декоратор, що реєструє модель в адмінці.  
-> Альтернативний запис: `admin.site.register(Category, CategoryAdmin)`
+> **`@admin.register(Model)`** — декоратор, що реєструє модель в адмінці.
 
 ---
 
@@ -527,6 +949,18 @@ python manage.py createsuperuser
 ```
 
 Введи username, email (можна пропустити), пароль.
+
+### Що відбувається при вході в `/admin/`:
+
+```
+1. Браузер: GET /admin/ → Django перевіряє сесію → не залогінений
+2. Django: 302 Redirect → /admin/login/
+3. Браузер: GET /admin/login/ → показує форму логіну
+4. Користувач вводить логін/пароль, натискає "Войти"
+5. Браузер: POST /admin/login/ + {username: 'admin', password: '...', csrftoken: '...'}
+6. Django: перевіряє credentials → OK → створює сесію → 302 Redirect → /admin/
+7. Браузер: GET /admin/ → Django бачить сесію → показує адмінку
+```
 
 ---
 
@@ -540,10 +974,7 @@ python manage.py runserver
 
 ### Що додати через адмінку:
 
-**Категорії** (мінімум 3):
-- Електроніка
-- Одяг
-- Книги
+**Категорії** (мінімум 3): Електроніка, Одяг, Книги
 
 **Товари** (мінімум 3, в різних категоріях):
 - iPhone 15 → Електроніка, 42000 грн
@@ -551,15 +982,13 @@ python manage.py runserver
 - "Кобзар" Шевченка → Книги, 250 грн
 
 **Замовлення** (мінімум 3):
-- Замовлення на iPhone, Іван Петренко, 1 шт, pending
-- Замовлення на кросівки, Марія Коваль, 2 шт, processing
-- Замовлення на книгу, Олег Мороз, 1 шт, delivered
+- iPhone, Іван Петренко, 1 шт, pending
+- Кросівки, Марія Коваль, 2 шт, processing
+- Книга, Олег Мороз, 1 шт, delivered
 
 ---
 
 ## Крок 7 — Перевірка зв'язків (JOIN)
-
-Зв'язок між таблицями вже налаштований через `ForeignKey`. Перевірити можна через Django Shell:
 
 ```bash
 python manage.py shell
@@ -602,6 +1031,694 @@ print(orders)
 
 ---
 
+# 🗂️ РОЗДІЛ 5 — Типи полів у Django моделях
+
+> Тип поля визначає який SQL-тип буде створено в базі даних, яка валідація застосується, і як поле відображатиметься в адмінці та формах.
+
+---
+
+## 5.1 — Текстові поля
+
+```python
+class Article(models.Model):
+
+    # CharField — короткий текст, ОБОВ'ЯЗКОВО вказуй max_length
+    # SQL: VARCHAR(200)
+    title = models.CharField(max_length=200)
+    slug = models.CharField(max_length=200, unique=True)   # unique — не може повторюватись
+
+    # TextField — довгий текст без обмеження довжини
+    # SQL: TEXT
+    content = models.TextField()
+    description = models.TextField(blank=True)  # blank=True — необов'язкове у формі
+
+    # EmailField — CharField з валідацією формату email
+    # SQL: VARCHAR(254)
+    email = models.EmailField()
+    contact_email = models.EmailField(blank=True)
+
+    # URLField — CharField з валідацією формату URL
+    # SQL: VARCHAR(200)
+    website = models.URLField(blank=True)
+
+    # SlugField — CharField тільки для URL-безпечних символів (a-z, 0-9, -, _)
+    # SQL: VARCHAR(50)
+    url_slug = models.SlugField(max_length=100)
+
+    # UUIDField — унікальний ідентифікатор (наприклад для API)
+    # SQL: VARCHAR(32) або UUID залежно від БД
+    import uuid
+    uid = models.UUIDField(default=uuid.uuid4, editable=False)
+```
+
+---
+
+## 5.2 — Числові поля
+
+```python
+class Product(models.Model):
+
+    # IntegerField — ціле число від -2 147 483 648 до 2 147 483 647
+    # SQL: INTEGER
+    views_count = models.IntegerField(default=0)
+
+    # PositiveIntegerField — ціле число >= 0
+    # SQL: INTEGER (з перевіркою)
+    stock = models.PositiveIntegerField(default=0)
+
+    # SmallIntegerField — ціле число від -32768 до 32767 (займає менше місця)
+    # SQL: SMALLINT
+    rating = models.SmallIntegerField(default=0)
+
+    # PositiveSmallIntegerField — від 0 до 32767
+    # SQL: SMALLINT
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    # BigIntegerField — дуже велике ціле число
+    # SQL: BIGINT
+    file_size = models.BigIntegerField(default=0)
+
+    # FloatField — число з плаваючою комою (НЕ використовуй для грошей!)
+    # SQL: REAL / DOUBLE PRECISION
+    # ⚠️ Неточний через особливості IEEE 754: 0.1 + 0.2 = 0.30000000000000004
+    latitude = models.FloatField()
+
+    # DecimalField — точне десяткове число (використовуй для грошей!)
+    # SQL: DECIMAL(10, 2)
+    # max_digits — загальна кількість цифр
+    # decimal_places — кількість знаків після коми
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+```
+
+> **FloatField vs DecimalField:**
+> ```python
+> # ❌ ПОГАНО — FloatField для грошей
+> price = 19.99  # може зберегтись як 19.989999999999998
+>
+> # ✅ ДОБРЕ — DecimalField для грошей
+> price = Decimal('19.99')  # завжди точно
+> ```
+
+---
+
+## 5.3 — Логічні поля
+
+```python
+class Product(models.Model):
+
+    # BooleanField — True або False
+    # SQL: BOOLEAN (або INTEGER 0/1 в SQLite)
+    is_available = models.BooleanField(default=True)
+    is_featured = models.BooleanField(default=False)
+
+    # NullBooleanField — True, False або NULL (застарів, краще BooleanField з null=True)
+    # ✅ Сучасний спосіб:
+    is_verified = models.BooleanField(null=True, blank=True)
+    # None = "невідомо", True = "так", False = "ні"
+```
+
+---
+
+## 5.4 — Поля дати і часу
+
+```python
+class Article(models.Model):
+
+    # DateField — тільки дата (рік-місяць-день)
+    # SQL: DATE
+    published_date = models.DateField()
+    birth_date = models.DateField(null=True, blank=True)
+
+    # TimeField — тільки час (години:хвилини:секунди)
+    # SQL: TIME
+    start_time = models.TimeField()
+
+    # DateTimeField — дата + час
+    # SQL: DATETIME / TIMESTAMP
+    created_at = models.DateTimeField(auto_now_add=True)  # встановлюється при створенні
+    updated_at = models.DateTimeField(auto_now=True)       # оновлюється при кожному save()
+    scheduled_at = models.DateTimeField(null=True, blank=True)  # може бути порожнім
+
+    # DurationField — тривалість часу (об'єкт timedelta)
+    # SQL: INTERVAL або BIGINT (мікросекунди)
+    video_duration = models.DurationField()
+```
+
+> **`auto_now_add` vs `auto_now` vs `default`:**
+> ```python
+> # auto_now_add=True — час СТВОРЕННЯ, встановлюється 1 раз, не можна змінити вручну
+> created_at = models.DateTimeField(auto_now_add=True)
+>
+> # auto_now=True — час ОСТАННЬОГО ОНОВЛЕННЯ, змінюється автоматично при save()
+> updated_at = models.DateTimeField(auto_now=True)
+>
+> # default=timezone.now — можна змінити вручну, зберігає поточний час за замовчуванням
+> from django.utils import timezone
+> published_at = models.DateTimeField(default=timezone.now)
+> ```
+
+---
+
+## 5.5 — Поля для файлів і зображень
+
+```python
+class Product(models.Model):
+
+    # FileField — завантаження будь-якого файлу
+    # SQL: VARCHAR(100) — зберігає ШЛЯХ до файлу, не сам файл!
+    document = models.FileField(upload_to='documents/')
+    # Файл збережеться у: MEDIA_ROOT/documents/filename.pdf
+
+    # ImageField — FileField з додатковою перевіркою що це зображення
+    # Потребує: pip install Pillow
+    # SQL: VARCHAR(100)
+    photo = models.ImageField(upload_to='products/photos/')
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+
+    # URLField — просто посилання на зображення (без завантаження файлу)
+    # Простіший варіант для навчальних проєктів
+    image_url = models.URLField(blank=True)
+```
+
+> **Налаштування для завантаження файлів у `settings.py`:**
+> ```python
+> import os
+> MEDIA_URL = '/media/'
+> MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+> ```
+
+---
+
+## 5.6 — Поля вибору (choices)
+
+```python
+class Order(models.Model):
+
+    # Варіант 1: список кортежів (старий стиль)
+    STATUS_CHOICES = [
+        ('pending', 'Очікує'),        # ('значення_в_БД', 'Назва для людини')
+        ('processing', 'В обробці'),
+        ('shipped', 'Відправлено'),
+        ('delivered', 'Доставлено'),
+        ('cancelled', 'Скасовано'),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+
+    # Варіант 2: через TextChoices (сучасний стиль, рекомендується)
+    class Priority(models.TextChoices):
+        LOW = 'low', 'Низький'
+        MEDIUM = 'medium', 'Середній'
+        HIGH = 'high', 'Високий'
+        CRITICAL = 'critical', 'Критичний'
+
+    priority = models.CharField(
+        max_length=10,
+        choices=Priority.choices,
+        default=Priority.MEDIUM
+    )
+
+    # Варіант 3: IntegerChoices (для числових значень)
+    class Rating(models.IntegerChoices):
+        ONE = 1, '⭐'
+        TWO = 2, '⭐⭐'
+        THREE = 3, '⭐⭐⭐'
+        FOUR = 4, '⭐⭐⭐⭐'
+        FIVE = 5, '⭐⭐⭐⭐⭐'
+
+    rating = models.IntegerField(choices=Rating.choices, null=True, blank=True)
+```
+
+> **Використання choices у коді:**
+> ```python
+> order = Order.objects.get(id=1)
+> order.status                    # 'pending' — значення в БД
+> order.get_status_display()      # 'Очікує' — людська назва
+> order.priority == Order.Priority.HIGH  # True/False
+> ```
+
+---
+
+## 5.7 — Поля зв'язків між таблицями
+
+```python
+# ────────────────────────────────────────────
+# ForeignKey — багато до одного (Many-to-One)
+# ────────────────────────────────────────────
+class Product(models.Model):
+    # Багато товарів → одна категорія
+    category = models.ForeignKey(
+        'Category',            # можна вказати рядком щоб уникнути ImportError
+        on_delete=models.CASCADE,
+        related_name='products',  # Category.products.all()
+        null=True,             # може бути порожнім
+        blank=True
+    )
+
+# ────────────────────────────────────────────
+# OneToOneField — один до одного (One-to-One)
+# ────────────────────────────────────────────
+from django.contrib.auth.models import User
+
+class UserProfile(models.Model):
+    # Кожен User має рівно один Profile
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile'  # user.profile — доступ до профілю
+    )
+    bio = models.TextField(blank=True)
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+
+# ────────────────────────────────────────────
+# ManyToManyField — багато до багатого
+# ────────────────────────────────────────────
+class Article(models.Model):
+    # Стаття може мати багато тегів, тег може бути у багатьох статтях
+    tags = models.ManyToManyField(
+        'Tag',
+        blank=True,
+        related_name='articles'
+    )
+    # Django автоматично створює проміжну таблицю: pages_article_tags
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50)
+```
+
+> **Порівняння типів зв'язків:**
+> ```
+> ForeignKey (M→1):     Багато товарів → одна категорія
+> OneToOneField (1→1):  Один юзер → один профіль
+> ManyToManyField (M→M): Багато статей ↔ багато тегів
+> ```
+
+---
+
+## 5.8 — Параметри полів (опції)
+
+Будь-яке поле може мати ці параметри:
+
+| Параметр | Тип | За замовчуванням | Опис |
+|---|---|---|---|
+| `null=True` | bool | `False` | Дозволити NULL в базі даних |
+| `blank=True` | bool | `False` | Дозволити порожнє значення у формі/валідації |
+| `default=...` | будь-що | — | Значення за замовчуванням |
+| `unique=True` | bool | `False` | Значення має бути унікальним у таблиці |
+| `db_index=True` | bool | `False` | Створити індекс у БД (прискорює пошук) |
+| `verbose_name='...'` | str | назва поля | Людська назва поля в адмінці |
+| `help_text='...'` | str | `''` | Підказка під полем у формі |
+| `editable=False` | bool | `True` | Приховати поле з форм і адмінки |
+| `choices=[...]` | list | — | Список допустимих значень |
+
+> **null vs blank — в чому різниця?**
+> ```python
+> # null=True  → стосується БАЗИ ДАНИХ: дозволяє зберегти NULL у колонці
+> # blank=True → стосується ФОРМ: поле необов'язкове при валідації
+>
+> # ✅ Для текстових полів — тільки blank=True (не null!)
+> bio = models.TextField(blank=True)       # порожній рядок '' у БД
+>
+> # ✅ Для числових/дат/зв'язків — null=True + blank=True
+> price = models.DecimalField(..., null=True, blank=True)  # NULL у БД
+> ```
+
+---
+
+## 5.9 — Повна таблиця типів полів
+
+| Django поле | SQL тип | Коли використовувати |
+|---|---|---|
+| `CharField` | VARCHAR | Короткий текст (ім'я, заголовок) |
+| `TextField` | TEXT | Довгий текст (опис, стаття) |
+| `EmailField` | VARCHAR(254) | Email з валідацією |
+| `URLField` | VARCHAR(200) | URL з валідацією |
+| `SlugField` | VARCHAR(50) | URL-сегмент (тільки a-z, 0-9, -, _) |
+| `IntegerField` | INTEGER | Ціле число |
+| `PositiveIntegerField` | INTEGER | Ціле невід'ємне число |
+| `SmallIntegerField` | SMALLINT | Маленьке ціле (-32768..32767) |
+| `BigIntegerField` | BIGINT | Дуже велике ціле |
+| `FloatField` | REAL | Число з плаваючою комою (не для грошей!) |
+| `DecimalField` | DECIMAL | Точне десяткове (гроші, точні виміри) |
+| `BooleanField` | BOOLEAN | True/False |
+| `DateField` | DATE | Тільки дата |
+| `TimeField` | TIME | Тільки час |
+| `DateTimeField` | DATETIME | Дата + час |
+| `DurationField` | INTERVAL | Тривалість часу |
+| `FileField` | VARCHAR | Шлях до файлу |
+| `ImageField` | VARCHAR | Шлях до зображення |
+| `UUIDField` | UUID/VARCHAR | Унікальний ідентифікатор |
+| `JSONField` | JSON/TEXT | JSON-дані (Django 3.1+) |
+| `ForeignKey` | INTEGER (FK) | Зв'язок M→1 |
+| `OneToOneField` | INTEGER (FK+unique) | Зв'язок 1→1 |
+| `ManyToManyField` | (проміжна таблиця) | Зв'язок M→M |
+
+---
+
+# 👤 РОЗДІЛ 6 — Система користувачів і адміністраторів
+
+## 6.1 — Вбудована модель User у Django
+
+Django вже має готову модель користувача. Ти не маєш її створювати — вона вже є.
+
+```python
+from django.contrib.auth.models import User
+
+# Поля вбудованої моделі User:
+user.id               # первинний ключ
+user.username         # логін (унікальний)
+user.email            # email
+user.first_name       # ім'я
+user.last_name        # прізвище
+user.password         # хешований пароль (НЕ зберігається відкрито!)
+user.is_active        # True = акаунт активний
+user.is_staff         # True = має доступ до /admin/
+user.is_superuser     # True = необмежені права
+user.date_joined      # дата реєстрації
+user.last_login       # дата останнього входу
+```
+
+---
+
+## 6.2 — Типи користувачів Django
+
+```
+Звичайний юзер:   is_staff=False, is_superuser=False
+                  Може: логінитись, дивитись свої дані
+                  Не може: заходити в /admin/
+
+Staff юзер:       is_staff=True,  is_superuser=False
+                  Може: заходити в /admin/
+                  Не може: робити все (тільки те, на що є права)
+
+Суперюзер:        is_staff=True,  is_superuser=True
+                  Може: ВСЕ. Повний доступ до всього.
+```
+
+---
+
+## 6.3 — Створення суперюзера через термінал
+
+```bash
+python manage.py createsuperuser
+```
+
+```
+Username (leave blank to use 'vasyl'): admin
+Email address: admin@example.com        ← можна натиснути Enter (пропустити)
+Password:                               ← не відображається при введенні
+Password (again):
+Superuser created successfully.
+```
+
+> **Вимоги до пароля за замовчуванням:**
+> - Мінімум 8 символів
+> - Не може бути лише числами
+> - Не може збігатись з username
+>
+> Для тестових проєктів можна спростити перевірку в `settings.py`:
+> ```python
+> AUTH_PASSWORD_VALIDATORS = []  # вимкнути всі перевірки (тільки для розробки!)
+> ```
+
+---
+
+## 6.4 — Створення суперюзера через код (Django Shell)
+
+```bash
+python manage.py shell
+```
+
+```python
+from django.contrib.auth.models import User
+
+# Спосіб 1: create_superuser() — правильний (хешує пароль автоматично)
+User.objects.create_superuser(
+    username='admin',
+    email='admin@example.com',
+    password='mypassword123'
+)
+
+# Спосіб 2: якщо треба змінити пароль існуючому юзеру
+user = User.objects.get(username='admin')
+user.set_password('newpassword456')  # хешує пароль
+user.save()
+
+# ⚠️ НІКОЛИ не робити так — пароль збережеться як відкритий текст!
+user.password = 'mypassword'  # НЕПРАВИЛЬНО
+user.save()
+```
+
+---
+
+## 6.5 — Створення staff-юзера (не супер, але з доступом до адмінки)
+
+```python
+# Через shell:
+from django.contrib.auth.models import User
+
+user = User.objects.create_user(
+    username='manager',
+    password='managerpass123'
+)
+user.is_staff = True      # доступ до /admin/
+user.is_superuser = False # але не суперюзер
+user.save()
+```
+
+Або через адмінку: `/admin/` → `Users` → обери юзера → постав галочку `Staff status`.
+
+---
+
+## 6.6 — Як виглядає вхід в адмінку (покроково)
+
+```
+1. Відкрий: http://127.0.0.1:8000/admin/
+   ↓
+   [Якщо не залогінений]
+   Django робить redirect → /admin/login/
+
+2. Форма входу:
+   Username: admin
+   Password: *****
+   [Log in]
+   ↓
+   POST /admin/login/ + csrftoken + username + password
+
+3. Django перевіряє:
+   - Чи існує User з таким username?
+   - Чи збігається хеш пароля?
+   - Чи is_staff = True?
+   ↓
+   Якщо все ОК → створює сесію → redirect → /admin/
+
+4. Адмінка відкривається
+   ↓
+   Показує всі зареєстровані моделі
+```
+
+---
+
+## 6.7 — Налаштування прав доступу в адмінці
+
+Django дозволяє давати окремим staff-юзерам права тільки на конкретні моделі та дії.
+
+**Через адмінку:**
+```
+/admin/ → Users → [ім'я юзера] → User permissions (внизу сторінки)
+
+Права формату: {app}.{action}_{model}
+  pages.view_product    — переглядати товари
+  pages.add_product     — додавати товари
+  pages.change_product  — редагувати товари
+  pages.delete_product  — видаляти товари
+```
+
+**Через код:**
+```python
+from django.contrib.auth.models import User, Permission
+
+user = User.objects.get(username='manager')
+
+# Додати право
+permission = Permission.objects.get(codename='change_product')
+user.user_permissions.add(permission)
+
+# Додати до групи (зручніше для масового управління)
+from django.contrib.auth.models import Group
+editors_group = Group.objects.get(name='Editors')
+user.groups.add(editors_group)
+```
+
+---
+
+## 6.8 — Обмеження доступу до адмінки для конкретних моделей
+
+```python
+# admin.py — можна обмежити що може робити staff-юзер
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    
+    # Заборонити видалення всім (навіть суперюзерам) через адмінку
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    # Дозволити додавання тільки суперюзерам
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    # Показувати різні поля залежно від ролі
+    def get_fields(self, request, obj=None):
+        fields = ['name', 'price', 'category']
+        if request.user.is_superuser:
+            fields += ['stock', 'is_available']  # суперюзер бачить більше
+        return fields
+```
+
+---
+
+## 6.9 — Корисні команди для управління юзерами
+
+```bash
+# Створити суперюзера
+python manage.py createsuperuser
+
+# Змінити пароль через термінал
+python manage.py changepassword admin
+
+# Відкрити shell для роботи з юзерами
+python manage.py shell
+```
+
+```python
+# Корисні запити в shell:
+
+from django.contrib.auth.models import User
+
+# Переглянути всіх юзерів
+User.objects.all()
+
+# Знайти юзера
+User.objects.get(username='admin')
+
+# Всі суперюзери
+User.objects.filter(is_superuser=True)
+
+# Перевірити чи існує юзер
+User.objects.filter(username='admin').exists()  # True / False
+
+# Видалити юзера
+User.objects.get(username='test_user').delete()
+```
+
+---
+
+# 🔬 ДОДАТКОВО — Django ORM: основні операції з даними
+
+## Читання (SELECT)
+
+```python
+# Всі записи
+Product.objects.all()
+
+# З фільтром
+Product.objects.filter(is_available=True)
+Product.objects.filter(price__lte=1000)         # price <= 1000
+Product.objects.filter(name__icontains='phone') # name LIKE '%phone%' (без регістру)
+Product.objects.filter(category__name='Книги')  # JOIN через ForeignKey
+
+# Один запис
+Product.objects.get(id=1)           # кидає виняток якщо не знайдено або знайдено >1
+Product.objects.filter(id=1).first() # None якщо не знайдено
+
+# Сортування
+Product.objects.order_by('price')    # зростання
+Product.objects.order_by('-price')   # спадання (мінус)
+
+# Кількість
+Product.objects.count()
+Product.objects.filter(is_available=True).count()
+```
+
+## Створення (INSERT)
+
+```python
+# Спосіб 1: create()
+product = Product.objects.create(
+    name='Новий товар',
+    price=999.99,
+    category=some_category
+)
+
+# Спосіб 2: save()
+product = Product(name='Товар', price=100)
+product.category = Category.objects.get(name='Книги')
+product.save()   # INSERT INTO ...
+```
+
+## Оновлення (UPDATE)
+
+```python
+# Один запис
+product = Product.objects.get(id=1)
+product.price = 1500
+product.save()   # UPDATE pages_product SET price=1500 WHERE id=1
+
+# Масове оновлення
+Product.objects.filter(category__name='Книги').update(is_available=False)
+```
+
+## Видалення (DELETE)
+
+```python
+product = Product.objects.get(id=1)
+product.delete()   # DELETE FROM pages_product WHERE id=1
+
+# Масове видалення
+Product.objects.filter(stock=0).delete()
+```
+
+---
+
+# 🔁 Повний цикл: від кліку до відповіді (підсумок)
+
+```
+Користувач натискає посилання "Каталог"
+          ↓
+Браузер відправляє: GET /catalog/ HTTP/1.1
+          ↓
+Django runserver приймає запит
+          ↓
+Middleware обробляє (сесія, авторизація, CSRF...)
+          ↓
+URL Router: /catalog/ → views.catalog
+          ↓
+View catalog(request):
+  - читає дані з БД через ORM: Product.objects.all()
+  - формує context = {'items': [...]}
+  - повертає render(request, 'catalog.html', context)
+          ↓
+Template Engine:
+  - завантажує catalog.html
+  - підставляє дані з context
+  - генерує HTML-рядок
+          ↓
+Django формує: HTTP/1.1 200 OK + HTML
+          ↓
+Middleware обробляє відповідь (у зворотньому порядку)
+          ↓
+Браузер отримує HTML, рендерить сторінку
+          ↓
+Сторінка відображається користувачу ✅
+```
+
+---
+
 ## ✅ Чеклист для здачі
 
 ### Лаба 3:
@@ -632,6 +1749,9 @@ print(orders)
 | `django.db.utils.OperationalError` | Таблиця не існує | Запусти `python manage.py migrate` |
 | Адмінка не показує модель | Модель не зареєстрована | Додай `@admin.register(MyModel)` в `admin.py` |
 | `ValueError: field ... was not provided` | Обов'язкове поле без значення | Додай `blank=True` або `default=...` до поля |
+| `403 Forbidden` на POST-формі | Відсутній CSRF-токен | Додай `{% csrf_token %}` всередині `<form>` |
+| Форма відправляється двічі | Немає redirect після POST | Додай `return redirect('...')` після обробки POST |
+| `404` після зміни URL | Хардкод URL у шаблоні | Використовуй `{% url 'name' %}` замість `/about/` |
 
 ---
 
@@ -640,7 +1760,7 @@ print(orders)
 ```
 myproject/
 ├── myproject/
-│   ├── settings.py    ← INSTALLED_APPS
+│   ├── settings.py    ← INSTALLED_APPS, MIDDLEWARE
 │   └── urls.py        ← include('pages.urls')
 ├── pages/
 │   ├── migrations/
