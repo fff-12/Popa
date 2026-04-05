@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Мій магазин{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Навігаційна панель -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <!-- Логотип -->
+            <a class="navbar-brand" href="{% url 'home' %}">FlowerBooM</a>
+            <!-- Кнопка для мобільного меню -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- Меню -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Головна</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="{% url 'products' %}" id="productsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Продукти
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="productsDropdown">
+                            {% for category in categories %}
+                                <li><a class="dropdown-item" href="{% url 'products' %}?category={{ category.id }}">{{ category.name }}</a></li>
+                            {% endfor %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'products' %}">Усі продукти</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'about' %}">Про нас</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contact' %}">Контакти</a>
+                    </li>
+                </ul>
+                <!-- Поле пошуку -->
+                <form class="d-flex me-3">
+                    <input class="form-control me-2" type="search" placeholder="Пошук" aria-label="Пошук">
+                    <button class="btn btn-outline-light" type="submit">Пошук</button>
+                </form>
+                <!-- Кошик -->
+                <a href="#" class="btn btn-outline-light">
+                    <i class="bi bi-cart"></i> Кошик
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основний вміст -->
+    <main class="container mt-4">
+        {% block content %}
+
+        {% endblock %}
+    </main>
+
+    <!-- Футер -->
+    <footer class="bg-dark text-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Про нас</h5>
+                    <p>Ще нема.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Посилання</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home' %}" class="text-light">Головна</a></li>
+                        <li><a href="{% url 'products' %}" class="text-light">Продукти</a></li>
+                        <li><a href="{% url 'contact' %}" class="text-light">Контакти</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Контакти</h5>
+                    <p>- Луцьк, пр.Молоді <br>- +380 50 661 1250<br>- FlowerBooM@gmail.com</p>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center">
+                <p>&copy; 2026 FlowerBooM. Всі права захищені.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
