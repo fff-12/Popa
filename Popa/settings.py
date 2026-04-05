@@ -116,3 +116,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# ЗМІНА #2: Додано налаштування для медіа файлів (фото товарів)
+# MEDIA_URL = '/media/' - URL для доступу до фото (http://127.0.0.1:8000/media/...)
+# MEDIA_ROOT = BASE_DIR / 'media' - фізична папка на сервері для зберігання фото
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

@@ -1,0 +1,25 @@
+{% extends "shop/base.html" %}
+
+{% block content %}
+<!-- ЗММІНА #9: Детальна сторінка товару -->
+<!-- Дозволяє користувачам бачити всю інформацію про конкретний товар -->
+<div class="row">
+    <div class="col-md-6">
+        <!-- ЗММІНА #10: Відображення великого фото товару (посилання зі сторінки товарів) -->
+        {% if product.photo %}
+            <img src="{{ product.photo.url }}" alt="{{ product.name }}" class="img-fluid">
+        {% else %}
+            <img src="https://via.placeholder.com/500x500?text=No+Image" alt="No Image" class="img-fluid">
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <h1>{{ product.name }}</h1>
+        <!-- Показуємо категорію, до якої належить товар (з посиланням для фільтрації) -->
+        <p class="text-muted">Категорія: <a href="{% url 'products' %}?category={{ product.category.id }}">{{ product.category.name }}</a></p>
+        <h3 class="text-primary">{{ product.price }} грн</h3>
+        <p>{{ product.description }}</p>
+        <p><strong>В наявності:</strong> {% if product.in_stock %}Так{% else %}Ні{% endif %}</p>
+        <button class="btn btn-success btn-lg">Купити</button>
+    </div>
+</div>
+{% endblock %}

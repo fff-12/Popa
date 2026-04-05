@@ -1,5 +1,37 @@
 {% extends "shop/base.html" %}
 
 {% block content %}
+<h1>{% if selected_category %}{{ selected_category.name }}{% else %}Усі продукти{% endif %}</h1>
 
+<!-- ЗММІНА #7: Відображення товарів у вигляді Bootstrap карток -->
+<!-- Кожна картка містить фото, назву, опис та кнопки -->
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <!-- ЗММІНА #8: Відображення фото товару -->
+            <!-- Перевіряємо, чи є фото. Якщо так, показуємо його. Якщо ні - показуємо placeholder -->
+            {% if product.photo %}
+                <img src="{{ product.photo.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+            {% else %}
+                <img src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;">
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text">{{ product.description|truncatechars:100 }}</p>
+                <p class="card-text"><strong>{{ product.price }} грн</strong></p>
+                <div class="mt-auto">
+                    <!-- Кнопка "Переглянути" вказує на детальну сторінку товару по ID -->
+                    <a href="{% url 'product_detail' product.id %}" class="btn btn-primary me-2">Переглянути</a>
+                    <button class="btn btn-success">Купити</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p>Немає продуктів у цій категорії.</p>
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}

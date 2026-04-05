@@ -27,11 +27,16 @@
                         <a class="nav-link dropdown-toggle" href="{% url 'products' %}" id="productsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Продукти
                         </a>
+                        <!-- ЗММІНА #11: Dropdown меню для вибору категорії -->
+                        <!-- Ітеруємо через усі категорії з сервера -->
                         <ul class="dropdown-menu" aria-labelledby="productsDropdown">
                             {% for category in categories %}
+                                <!-- Кожна категорія - це посилання з параметром query: ?category={{ category.id }} -->
+                                <!-- Наприклад: /products/?category=1 -->
                                 <li><a class="dropdown-item" href="{% url 'products' %}?category={{ category.id }}">{{ category.name }}</a></li>
                             {% endfor %}
                             <li><hr class="dropdown-divider"></li>
+                            <!-- Посилання на всі продукти без фільтрації -->
                             <li><a class="dropdown-item" href="{% url 'products' %}">Усі продукти</a></li>
                         </ul>
                     </li>
