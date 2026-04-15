@@ -2,10 +2,13 @@ from django.shortcuts import render
 from .models import Category, Product
 
 def home(request):
+    # Покажемо всі товари одразу на головній сторінці
+    products = Product.objects.all()
     context = {
         'title': 'Ласкаво просимо в наш магазин!',
         'message': 'Це головна сторінка нашого інтернет-магазину',
         'categories': Category.objects.all(),
+        'products': products,
     }
     return render(request, 'shop/home.html', context)
 

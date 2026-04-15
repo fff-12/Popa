@@ -6,10 +6,58 @@
     <title>{% block title %}Мій магазин{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #c8dfc7;
+            color: #1f3d2d;
+            min-height: 100vh;
+        }
+        main.container {
+            background: transparent;
+        }
+        .navbar {
+            background-color: #2f6f45 !important;
+        }
+        .navbar .nav-link,
+        .navbar-brand,
+        .navbar-toggler-icon {
+            color: #f5f8f2 !important;
+        }
+        .navbar .nav-link.active,
+        .navbar .nav-link:hover {
+            color: #e8f5e9 !important;
+        }
+        .dropdown-menu {
+            background-color: #eef8ef;
+        }
+        .dropdown-item:hover,
+        .dropdown-item:focus {
+            background-color: #d8efdb;
+        }
+        footer {
+            background-color: #2f6f45;
+            color: #f5f8f2;
+        }
+        .card {
+            border: none;
+            background-color: #ffffff;
+            box-shadow: 0 8px 24px rgba(31, 61, 45, 0.08);
+        }
+        .btn-success,
+        .btn-primary {
+            background-color: #4f8a5a !important;
+            border-color: #4f8a5a !important;
+        }
+        .btn-success:hover,
+        .btn-primary:hover {
+            background-color: #3f7249 !important;
+            border-color: #3f7249 !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Навігаційна панель -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
             <!-- Логотип -->
             <a class="navbar-brand" href="{% url 'home' %}">FlowerBooM</a>
@@ -35,9 +83,6 @@
                                 <!-- Наприклад: /products/?category=1 -->
                                 <li><a class="dropdown-item" href="{% url 'products' %}?category={{ category.id }}">{{ category.name }}</a></li>
                             {% endfor %}
-                            <li><hr class="dropdown-divider"></li>
-                            <!-- Посилання на всі продукти без фільтрації -->
-                            <li><a class="dropdown-item" href="{% url 'products' %}">Усі продукти</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -47,11 +92,6 @@
                         <a class="nav-link" href="{% url 'contact' %}">Контакти</a>
                     </li>
                 </ul>
-                <!-- Поле пошуку -->
-                <form class="d-flex me-3">
-                    <input class="form-control me-2" type="search" placeholder="Пошук" aria-label="Пошук">
-                    <button class="btn btn-outline-light" type="submit">Пошук</button>
-                </form>
                 <!-- Кошик -->
                 <a href="#" class="btn btn-outline-light">
                     <i class="bi bi-cart"></i> Кошик
@@ -68,7 +108,7 @@
     </main>
 
     <!-- Футер -->
-    <footer class="bg-dark text-light mt-5 py-4">
+    <footer class="text-light mt-5 py-4">
         <div class="container">
             <div class="row">
                 <div class="col-md-4">
