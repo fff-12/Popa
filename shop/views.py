@@ -2,7 +2,7 @@ from django.shortcuts import render
 from .models import Category, Product
 
 def home(request):
-    # Покажемо всі товари одразу на головній сторінці
+    # Лаба 5: головна сторінка показує всі товари з БД
     products = Product.objects.all()
     context = {
         'title': 'Ласкаво просимо в наш магазин!',
@@ -21,7 +21,7 @@ def about(request):
     return render(request, 'shop/about.html', context)
 
 def products(request):
-    # ЗММІНА #5: Функція для відображення сторінки товарів з фільтрацією по категоріях
+    # Лаба 5: сторінка категорій / продукти з фільтрацією за ID категорії
     # Отримуємо параметр 'category' з URL (наприклад: /products/?category=1)
     category_id = request.GET.get('category')
     products = Product.objects.all()  # Спочатку отримуємо всі товари
@@ -48,7 +48,7 @@ def contact(request):
     return render(request, 'shop/contact.html', context)
 
 def product_detail(request, product_id):
-    # ЗММІНА #6: Функція для відображення детальної сторінки конкретного товару
+    # Лаба 6: детальна сторінка товару бере дані з БД по ID
     # product_id передається з URL (наприклад: /product/1/)
     product = Product.objects.get(id=product_id)  # Отримуємо товар по ID
     context = {

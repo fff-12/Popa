@@ -1,25 +1,50 @@
 {% extends "shop/base.html" %}
 
 {% block content %}
-<!-- ЗММІНА #9: Детальна сторінка товару -->
-<!-- Дозволяє користувачам бачити всю інформацію про конкретний товар -->
-<div class="row">
-    <div class="col-md-6">
-        <!-- ЗММІНА #10: Відображення великого фото товару (посилання зі сторінки товарів) -->
-        {% if product.photo %}
-            <img src="{{ product.photo.url }}" alt="{{ product.name }}" class="img-fluid">
-        {% else %}
-            <img src="https://via.placeholder.com/500x500?text=No+Image" alt="No Image" class="img-fluid">
-        {% endif %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-transparent px-0">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Головна</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'products' %}">Продукти</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+            </ol>
+        </nav>
     </div>
-    <div class="col-md-6">
-        <h1>{{ product.name }}</h1>
-        <!-- Показуємо категорію, до якої належить товар (з посиланням для фільтрації) -->
-        <p class="text-muted">Категорія: <a href="{% url 'products' %}?category={{ product.category.id }}">{{ product.category.name }}</a></p>
-        <h3 class="text-primary">{{ product.price }} грн</h3>
-        <p>{{ product.description }}</p>
-        <p><strong>В наявності:</strong> {% if product.in_stock %}Так{% else %}Ні{% endif %}</p>
-        <button class="btn btn-success btn-lg">Купити</button>
+</div>
+
+<div class="row">
+    <div class="col-lg-5 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            {% if product.photo %}
+                <img src="{{ product.photo.url }}" alt="{{ product.name }}" class="w-100" style="height: 420px; object-fit: cover;">
+            {% else %}
+                <img src="https://via.placeholder.com/700x420?text=No+Image" alt="No Image" class="w-100" style="height: 420px; object-fit: cover;">
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm p-4 bg-white">
+            <div class="mb-3">
+                <span class="badge bg-success">{{ product.category.name }}</span>
+            </div>
+            <h1 class="h3 fw-bold mb-3">{{ product.name }}</h1>
+            <h2 class="text-success mb-4">{{ product.price }} грн</h2>
+            <p class="mb-4">{{ product.description }}</p>
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Наявність</span>
+                    <span class="badge bg-{{ product.in_stock|yesno:'success,secondary' }} rounded-pill">
+                        {% if product.in_stock %}В наявності{% else %}Немає{% endif %}
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Категорія</span>
+                    <a href="{% url 'products' %}?category={{ product.category.id }}" class="text-decoration-none">{{ product.category.name }}</a>
+                </li>
+            </ul>
+            <button class="btn btn-success btn-lg">Купити</button>
+        </div>
     </div>
 </div>
 {% endblock %}
