@@ -3,85 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Мій магазин{% endblock %}</title>
-    <!-- Bootstrap CSS -->
+    <title>{% block title %}FlowerBooM{% endblock %}</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #c8dfc7;
-            color: #1f3d2d;
-            min-height: 100vh;
-        }
-        main.container {
-            background: transparent;
-        }
-        .navbar {
-            background-color: #2f6f45 !important;
-        }
-        .navbar .nav-link,
-        .navbar-brand,
-        .navbar-toggler-icon {
-            color: #f5f8f2 !important;
-        }
-        .navbar .nav-link.active,
-        .navbar .nav-link:hover {
-            color: #e8f5e9 !important;
-        }
-        .dropdown-menu {
-            background-color: #eef8ef;
-        }
-        .dropdown-item:hover,
-        .dropdown-item:focus {
-            background-color: #d8efdb;
-        }
-        footer {
-            background-color: #2f6f45;
-            color: #f5f8f2;
-        }
-        .card {
-            border: none;
-            background-color: #ffffff;
-            box-shadow: 0 8px 24px rgba(31, 61, 45, 0.08);
-        }
-        .btn-success,
-        .btn-primary {
-            background-color: #4f8a5a !important;
-            border-color: #4f8a5a !important;
-        }
-        .btn-success:hover,
-        .btn-primary:hover {
-            background-color: #3f7249 !important;
-            border-color: #3f7249 !important;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    {% load static %}
+    {# ЗМІНА (промт: "перенести CSS в окрему папку + static метод") — #}
+    {# весь CSS винесено в shop/static/shop/css/styles.css, #}
+    {# підключається через {% static %} замість прямого шляху #}
+    <link rel="stylesheet" href="{% static 'shop/css/styles.css' %}">
 </head>
 <body>
-    <!-- Навігаційна панель -->
+
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-            <!-- Логотип -->
-            <a class="navbar-brand" href="{% url 'home' %}">FlowerBooM</a>
-            <!-- Кнопка для мобільного меню -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand fw-bold" href="{% url 'home' %}">🌸 FlowerBooM</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <!-- Меню -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Головна</a>
+                        <a class="nav-link" href="{% url 'home' %}">Головна</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="{% url 'products' %}" id="productsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="{% url 'products' %}" id="productsDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Продукти
                         </a>
-                        <!-- ЗММІНА #11: Dropdown меню для вибору категорії -->
-                        <!-- Ітеруємо через усі категорії з сервера -->
                         <ul class="dropdown-menu" aria-labelledby="productsDropdown">
+                            <li><a class="dropdown-item" href="{% url 'products' %}">Всі продукти</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             {% for category in categories %}
-                                <!-- Кожна категорія - це посилання з параметром query: ?category={{ category.id }} -->
-                                <!-- Наприклад: /products/?category=1 -->
-                                <li><a class="dropdown-item" href="{% url 'products' %}?category={{ category.id }}">{{ category.name }}</a></li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'products' %}?category={{ category.id }}">
+                                        {{ category.name }}
+                                    </a>
+                                </li>
                             {% endfor %}
                         </ul>
                     </li>
@@ -92,7 +52,6 @@
                         <a class="nav-link" href="{% url 'contact' %}">Контакти</a>
                     </li>
                 </ul>
-                <!-- Кошик -->
                 <a href="#" class="btn btn-outline-light">
                     <i class="bi bi-cart"></i> Кошик
                 </a>
@@ -100,42 +59,49 @@
         </div>
     </nav>
 
-    <!-- Основний вміст -->
+    {# ЗМІНА (промт: "футер завжди внизу") — main має flex:1 0 auto в CSS, #}
+    {# що розтягує його і виштовхує футер донизу навіть на порожній сторінці #}
     <main class="container mt-4">
         {% block content %}
-
         {% endblock %}
     </main>
 
-    <!-- Футер -->
+    {# ЗМІНА (промт: "футер завжди внизу") — footer має flex-shrink:0 в CSS, #}
+    {# не стискується і завжди залишається під контентом незалежно від висоти сторінки #}
+    {# ЗМІНА (промт: "наповнити сайт як для релізу") — додано адресу, телефон, email, навігація #}
     <footer class="text-light mt-5 py-4">
         <div class="container">
             <div class="row">
-                <div class="col-md-4">
-                    <h5>Про нас</h5>
-                    <p>Ще нема.</p>
+                <div class="col-md-4 mb-3">
+                    <h5 class="fw-bold mb-3">🌸 FlowerBooM</h5>
+                    <p class="mb-0" style="opacity:0.85;">
+                        Квіткова крамниця у Луцьку. Свіжі букети, кімнатні рослини
+                        та флористичні композиції для будь-якого приводу.
+                    </p>
                 </div>
-                <div class="col-md-4">
-                    <h5>Посилання</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="{% url 'home' %}" class="text-light">Головна</a></li>
-                        <li><a href="{% url 'products' %}" class="text-light">Продукти</a></li>
-                        <li><a href="{% url 'contact' %}" class="text-light">Контакти</a></li>
+                <div class="col-md-4 mb-3">
+                    <h5 class="fw-bold mb-3">Навігація</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><a href="{% url 'home' %}">Головна</a></li>
+                        <li><a href="{% url 'products' %}">Продукти</a></li>
+                        <li><a href="{% url 'about' %}">Про нас</a></li>
+                        <li><a href="{% url 'contact' %}">Контакти</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4">
-                    <h5>Контакти</h5>
-                    <p>- Луцьк, пр.Молоді <br>- +380 50 661 1250<br>- FlowerBooM@gmail.com</p>
+                <div class="col-md-4 mb-3">
+                    <h5 class="fw-bold mb-3">Контакти</h5>
+                    <p class="mb-1"><i class="bi bi-geo-alt me-1"></i> Луцьк, пр. Молоді</p>
+                    <p class="mb-1"><i class="bi bi-telephone me-1"></i> +380 50 661 1250</p>
+                    <p class="mb-0"><i class="bi bi-envelope me-1"></i> FlowerBooM@gmail.com</p>
                 </div>
             </div>
-            <hr class="my-4">
-            <div class="text-center">
-                <p>&copy; 2026 FlowerBooM. Всі права захищені.</p>
+            <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
+            <div class="text-center" style="opacity:0.75;">
+                <small>&copy; 2026 FlowerBooM. Всі права захищені.</small>
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

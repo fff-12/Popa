@@ -1,37 +1,81 @@
 {% extends "shop/base.html" %}
 
+{% block title %}FlowerBooM — Квіткова крамниця{% endblock %}
+
 {% block content %}
-<div class="py-5 text-center text-dark bg-light rounded-4 shadow-sm">
-    <p class="h1 fw-bold mb-3">FlowerBooM</p>
-    <p class="lead mb-0">Краса квітів поруч з вами — всі товари відразу на головній сторінці.</p>
+
+{# ЗМІНА (промт: "наповнити сайт як для релізу") — героїчний банер замість простого заголовку #}
+<div class="hero-banner">
+    <h1>🌸 FlowerBooM</h1>
+    <p class="lead mb-4">Краса квітів поруч з вами — доставка свіжих букетів по Луцьку щодня</p>
+    <a href="{% url 'products' %}" class="btn btn-light fw-semibold px-4">
+        Переглянути каталог <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+</div>
+
+{# ЗМІНА (промт: "наповнити сайт як для релізу") — секція переваг магазину #}
+<div class="row text-center mb-5">
+    <div class="col-md-4 mb-3">
+        <div class="p-3">
+            <div style="font-size:2.5rem;">🌿</div>
+            <h6 class="fw-semibold mt-2">Свіжі квіти</h6>
+            <small class="text-muted">Постачання щодня зранку</small>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="p-3">
+            <div style="font-size:2.5rem;">🚚</div>
+            <h6 class="fw-semibold mt-2">Доставка по Луцьку</h6>
+            <small class="text-muted">Від 2 годин після замовлення</small>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="p-3">
+            <div style="font-size:2.5rem;">🎁</div>
+            <h6 class="fw-semibold mt-2">Індивідуальні букети</h6>
+            <small class="text-muted">Зробимо за вашим бажанням</small>
+        </div>
+    </div>
 </div>
 
 <section class="mb-5">
-    <h2 class="mb-4 text-dark">Нові товари</h2>
+    <h2 class="section-title">Нові товари</h2>
     <div class="row">
         {% for product in products %}
         <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
+
+            {# ЗМІНА (промт: "товари без наявності знизу + сірі") — #}
+            {# клас out-of-stock додає opacity та grayscale через styles.css #}
+            {# сортування відбувається у views.py: order_by('-in_stock', 'name') #}
+            <div class="card h-100 {% if not product.in_stock %}out-of-stock{% endif %}">
                 {% if product.photo %}
-                    <img src="{{ product.photo.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 220px; object-fit: cover;">
+                    <img src="{{ product.photo.url }}" class="card-img-top product-card-img" alt="{{ product.name }}">
                 {% else %}
-                    <img src="https://via.placeholder.com/300x220?text=No+Image" class="card-img-top" alt="No Image" style="height: 220px; object-fit: cover;">
+                    <img src="https://via.placeholder.com/300x220?text=FlowerBooM" class="card-img-top product-card-img" alt="No Image">
                 {% endif %}
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">{{ product.name }}</h5>
-                    <p class="card-text text-truncate">{{ product.description|truncatechars:100 }}</p>
-                    <p class="card-text"><strong>{{ product.price }} грн</strong></p>
+                    <p class="card-text text-muted small">{{ product.description|truncatechars:90 }}</p>
+                    <p class="card-text fw-bold text-success">{{ product.price }} грн</p>
+
+                    {# ЗМІНА (промт: "відображати чи є товар чи ні") — іконка + текст наявності #}
+                    <p class="card-text small {% if product.in_stock %}text-success{% else %}text-secondary{% endif %}">
+                        <i class="bi bi-{% if product.in_stock %}check-circle{% else %}x-circle{% endif %} me-1"></i>
+                        {% if product.in_stock %}В наявності{% else %}Немає в наявності{% endif %}
+                    </p>
+
                     <div class="mt-auto">
-                        <a href="{% url 'product_detail' product.id %}" class="btn btn-primary">Переглянути</a>
+                        <a href="{% url 'product_detail' product.id %}" class="btn btn-primary btn-sm">Переглянути</a>
                     </div>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="col-12">
-            <p class="text-light">Тут будуть товари, коли вони з'являться.</p>
+            <p class="text-muted">Тут будуть товари, коли вони з'являться.</p>
         </div>
         {% endfor %}
     </div>
 </section>
+
 {% endblock %}

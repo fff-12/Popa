@@ -1,6 +1,9 @@
 {% extends "shop/base.html" %}
 
+{% block title %}{{ product.name }} — FlowerBooM{% endblock %}
+
 {% block content %}
+
 <div class="row mb-4">
     <div class="col-12">
         <nav aria-label="breadcrumb">
@@ -15,36 +18,55 @@
 
 <div class="row">
     <div class="col-lg-5 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="product-image-wrap">
             {% if product.photo %}
-                <img src="{{ product.photo.url }}" alt="{{ product.name }}" class="w-100" style="height: 420px; object-fit: cover;">
+                <img src="{{ product.photo.url }}" alt="{{ product.name }}">
             {% else %}
-                <img src="https://via.placeholder.com/700x420?text=No+Image" alt="No Image" class="w-100" style="height: 420px; object-fit: cover;">
+                <img src="https://via.placeholder.com/700x420?text=FlowerBooM" alt="No Image">
             {% endif %}
         </div>
     </div>
     <div class="col-lg-7">
-        <div class="card border-0 shadow-sm p-4 bg-white">
-            <div class="mb-3">
+        <div class="product-info-card">
+            <div class="mb-2">
                 <span class="badge bg-success">{{ product.category.name }}</span>
+                {# ЗМІНА (промт: "відображати чи є товар чи ні") — бейдж "Немає в наявності" на детальній #}
+                {% if not product.in_stock %}
+                    <span class="badge bg-secondary ms-1">Немає в наявності</span>
+                {% endif %}
             </div>
-            <h1 class="h3 fw-bold mb-3">{{ product.name }}</h1>
-            <h2 class="text-success mb-4">{{ product.price }} грн</h2>
-            <p class="mb-4">{{ product.description }}</p>
+            <h1 class="h3 fw-bold mb-2">{{ product.name }}</h1>
+            <p class="product-price mb-3">{{ product.price }} грн</p>
+            <p class="text-muted mb-4">{{ product.description }}</p>
             <ul class="list-group list-group-flush mb-4">
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <span>Наявність</span>
+                    {# ЗМІНА (промт: "відображати чи є товар чи ні") — бейдж зелений/сірий залежно від in_stock #}
                     <span class="badge bg-{{ product.in_stock|yesno:'success,secondary' }} rounded-pill">
+                        <i class="bi bi-{% if product.in_stock %}check-circle{% else %}x-circle{% endif %} me-1"></i>
                         {% if product.in_stock %}В наявності{% else %}Немає{% endif %}
                     </span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <span>Категорія</span>
-                    <a href="{% url 'products' %}?category={{ product.category.id }}" class="text-decoration-none">{{ product.category.name }}</a>
+                    <a href="{% url 'products' %}?category={{ product.category.id }}" class="text-decoration-none text-success">
+                        {{ product.category.name }}
+                    </a>
                 </li>
             </ul>
-            <button class="btn btn-success btn-lg">Купити</button>
+
+            {# ЗМІНА (промт: "товари без наявності знизу") — кнопка "Купити" заблокована якщо немає товару #}
+            {% if product.in_stock %}
+                <button class="btn btn-success btn-lg btn-buy">
+                    <i class="bi bi-cart-plus me-2"></i>Купити
+                </button>
+            {% else %}
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="bi bi-x-circle me-2"></i>Немає в наявності
+                </button>
+            {% endif %}
         </div>
     </div>
 </div>
+
 {% endblock %}

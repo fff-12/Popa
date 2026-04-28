@@ -1,37 +1,52 @@
 {% extends "shop/base.html" %}
 
-{% block content %}
-<h1>{% if selected_category %}{{ selected_category.name }}{% else %}Усі продукти{% endif %}</h1>
+{% block title %}{% if selected_category %}{{ selected_category.name }}{% else %}Всі продукти{% endif %} — FlowerBooM{% endblock %}
 
-<!-- ЗММІНА #7: Відображення товарів у вигляді Bootstrap карток -->
-<!-- Кожна картка містить фото, назву, опис та кнопки -->
+{% block content %}
+
+<h1 class="products-header">
+    {% if selected_category %}{{ selected_category.name }}{% else %}Усі продукти{% endif %}
+</h1>
+
 <div class="row">
     {% for product in products %}
     <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <!-- ЗММІНА #8: Відображення фото товару -->
-            <!-- Перевіряємо, чи є фото. Якщо так, показуємо його. Якщо ні - показуємо placeholder -->
+
+        {# ЗМІНА (промт: "товари без наявності знизу + сірі") — #}
+        {# клас out-of-stock додає opacity та grayscale через styles.css #}
+        {# сортування відбувається у views.py: order_by('-in_stock', 'name') #}
+        <div class="card h-100 {% if not product.in_stock %}out-of-stock{% endif %}">
             {% if product.photo %}
-                <img src="{{ product.photo.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                <img src="{{ product.photo.url }}" class="card-img-top product-card-img" alt="{{ product.name }}">
             {% else %}
-                <img src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;">
+                <img src="https://via.placeholder.com/300x200?text=FlowerBooM" class="card-img-top product-card-img" alt="No Image">
             {% endif %}
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title">{{ product.name }}</h5>
-                <p class="card-text">{{ product.description|truncatechars:100 }}</p>
-                <p class="card-text"><strong>{{ product.price }} грн</strong></p>
-                <div class="mt-auto">
-                    <!-- Кнопка "Переглянути" вказує на детальну сторінку товару по ID -->
-                    <a href="{% url 'product_detail' product.id %}" class="btn btn-primary me-2">Переглянути</a>
-                    <button class="btn btn-success">Купити</button>
+                <p class="card-text text-muted small">{{ product.description|truncatechars:100 }}</p>
+                <p class="card-text fw-bold text-success">{{ product.price }} грн</p>
+
+                {# ЗМІНА (промт: "відображати чи є товар чи ні") — іконка + текст наявності #}
+                <p class="card-text small {% if product.in_stock %}text-success{% else %}text-secondary{% endif %}">
+                    <i class="bi bi-{% if product.in_stock %}check-circle{% else %}x-circle{% endif %} me-1"></i>
+                    {% if product.in_stock %}В наявності{% else %}Немає в наявності{% endif %}
+                </p>
+
+                <div class="mt-auto d-flex gap-2">
+                    <a href="{% url 'product_detail' product.id %}" class="btn btn-primary btn-sm">Переглянути</a>
+                    {# ЗМІНА (промт: "товари без наявності знизу") — кнопка "Купити" схована якщо товару немає #}
+                    {% if product.in_stock %}
+                        <button class="btn btn-success btn-sm">Купити</button>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
     {% empty %}
-    <div class="col-12">
+    <div class="col-12 empty-category">
         <p>Немає продуктів у цій категорії.</p>
     </div>
     {% endfor %}
 </div>
+
 {% endblock %}

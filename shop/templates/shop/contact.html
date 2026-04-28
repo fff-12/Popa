@@ -1,5 +1,95 @@
 {% extends "shop/base.html" %}
 
+{% block title %}Контакти — FlowerBooM{% endblock %}
+
 {% block content %}
+
+{# ЗМІНА (промт: "наповнити сайт як для релізу") — вся сторінка "Контакти" була порожньою, #}
+{# додано: картки з адресою/телефоном/email, розклад роботи, соцмережі, посилання на карту #}
+
+<div class="contact-header">
+    <h1>📞 Контакти</h1>
+    <p>Ми завжди раді вашим дзвінкам та повідомленням</p>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-4 mb-4">
+        <div class="contact-card">
+            <span class="contact-icon">📍</span>
+            <h5>Адреса</h5>
+            <p>м. Луцьк, пр. Молоді</p>
+            <small class="text-muted">Орієнтир: поруч з центральним ринком</small>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="contact-card">
+            <span class="contact-icon">📱</span>
+            <h5>Телефон</h5>
+            <p><a href="tel:+380506611250">+380 50 661 1250</a></p>
+            <small class="text-muted">Viber, Telegram, WhatsApp</small>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="contact-card">
+            <span class="contact-icon">✉️</span>
+            <h5>Email</h5>
+            <p><a href="mailto:FlowerBooM@gmail.com">FlowerBooM@gmail.com</a></p>
+            <small class="text-muted">Відповідаємо протягом 2 годин</small>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-6 mb-4">
+        <div class="contact-card text-start">
+            <h5 class="text-center mb-4">🕐 Години роботи</h5>
+            <table class="table hours-table mb-0">
+                <tbody>
+                    <tr>
+                        <td>Понеділок — П'ятниця</td>
+                        <th class="text-end">08:00 — 20:00</th>
+                    </tr>
+                    <tr>
+                        <td>Субота</td>
+                        <th class="text-end">09:00 — 19:00</th>
+                    </tr>
+                    <tr>
+                        <td>Неділя</td>
+                        <th class="text-end">10:00 — 17:00</th>
+                    </tr>
+                    <tr>
+                        <td>Свята</td>
+                        <th class="text-end text-success">Працюємо ✓</th>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="contact-card">
+            <h5 class="mb-4">🌐 Ми в соцмережах</h5>
+            <div class="d-grid gap-2">
+                <a href="#" class="btn btn-outline-secondary">
+                    <i class="bi bi-instagram me-2"></i>Instagram — @flowerboom.lutsk
+                </a>
+                <a href="#" class="btn btn-outline-secondary">
+                    <i class="bi bi-facebook me-2"></i>Facebook — FlowerBooM Луцьк
+                </a>
+                <a href="#" class="btn btn-outline-secondary">
+                    <i class="bi bi-telegram me-2"></i>Telegram — @flowerboom_lutsk
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="map-placeholder mb-5">
+    <span>🗺️</span>
+    <h5 class="text-muted">Карта</h5>
+    <p class="text-muted mb-0">м. Луцьк, пр. Молоді</p>
+    <a href="https://maps.google.com/?q=Луцьк+проспект+Молоді" target="_blank" class="btn btn-success mt-3">
+        <i class="bi bi-map me-2"></i>Відкрити в Google Maps
+    </a>
+</div>
 
 {% endblock %}

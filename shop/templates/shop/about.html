@@ -1,5 +1,108 @@
 {% extends "shop/base.html" %}
 
+{% block title %}Про нас — FlowerBooM{% endblock %}
+
 {% block content %}
+
+{# ЗМІНА (промт: "наповнити сайт як для релізу") — вся сторінка "Про нас" була порожньою, #}
+{# додано: банер, історія компанії, 6 карток переваг, секція команди #}
+
+<div class="about-hero">
+    <h1>🌸 Про FlowerBooM</h1>
+    <p class="lead mb-0">Ми дарujемо красу квітів кожному — з любов'ю та турботою з Луцька</p>
+</div>
+
+<div class="row mb-5">
+    <div class="col-lg-7 mb-4">
+        <h2 class="about-section-title">Наша історія</h2>
+        <p>
+            FlowerBooM — це квіткова крамниця у Луцьку, яка відкрилась у 2020 році з однієї простої ідеї:
+            кожна людина заслуговує на красу живих квітів. Від маленького ятку на ринку до сучасного
+            магазину з онлайн-замовленням — ми пройшли великий шлях разом з нашими клієнтами.
+        </p>
+        <p>
+            Сьогодні FlowerBooM — це понад 200 видів квітів та рослин, власна флористична майстерня
+            та команда спеціалістів, які щодня створюють неповторні композиції.
+        </p>
+        <p>
+            Наші квіти постачаються щодня від перевірених виробників України та Нідерландів,
+            що гарантує їх свіжість та довгий термін зберігання.
+        </p>
+    </div>
+    <div class="col-lg-5 mb-4 d-flex align-items-center justify-content-center">
+        <div style="font-size: 8rem; text-align: center; opacity: 0.6;">🌷🌻🌹</div>
+    </div>
+</div>
+
+<h2 class="about-section-title mb-4">Чому обирають нас</h2>
+<div class="row mb-5">
+    <div class="col-md-4 mb-4">
+        <div class="advantage-card">
+            <span class="advantage-icon">🌿</span>
+            <h5>Гарантія свіжості</h5>
+            <p class="text-muted mb-0">Щоденне постачання від перевірених виробників. Якщо квіти в'януть раніше — повертаємо гроші.</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="advantage-card">
+            <span class="advantage-icon">🎨</span>
+            <h5>Авторська флористика</h5>
+            <p class="text-muted mb-0">Наші флористи — дипломовані спеціалісти з багаторічним досвідом. Кожен букет — витвір мистецтва.</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="advantage-card">
+            <span class="advantage-icon">🚚</span>
+            <h5>Швидка доставка</h5>
+            <p class="text-muted mb-0">Доставляємо по всьому Луцьку за 2–3 години. Є термінова доставка за 1 годину.</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="advantage-card">
+            <span class="advantage-icon">💳</span>
+            <h5>Зручна оплата</h5>
+            <p class="text-muted mb-0">Готівка, картка або онлайн. Приймаємо ПриватБанк, Монобанк та інші картки.</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="advantage-card">
+            <span class="advantage-icon">🎁</span>
+            <h5>Індивідуальні замовлення</h5>
+            <p class="text-muted mb-0">Складемо букет за вашими побажаннями, кольорами, бюджетом і приводом.</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="advantage-card">
+            <span class="advantage-icon">💚</span>
+            <h5>Підтримка ЗСУ</h5>
+            <p class="text-muted mb-0">З кожного замовлення перераховуємо частину коштів на підтримку Збройних Сил України.</p>
+        </div>
+    </div>
+</div>
+
+<h2 class="about-section-title mb-4">Наша команда</h2>
+<div class="row mb-5">
+    <div class="col-md-4 mb-4">
+        <div class="team-card">
+            <div class="team-avatar">👩</div>
+            <h5 class="fw-semibold">Марія Коваленко</h5>
+            <p class="text-muted small mb-0">Головний флорист та засновниця</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="team-card">
+            <div class="team-avatar">👨</div>
+            <h5 class="fw-semibold">Андрій Петренко</h5>
+            <p class="text-muted small mb-0">Флорист-дизайнер</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="team-card">
+            <div class="team-avatar">👩</div>
+            <h5 class="fw-semibold">Олена Шевченко</h5>
+            <p class="text-muted small mb-0">Менеджер з продажів та доставки</p>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

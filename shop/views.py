@@ -3,7 +3,8 @@ from .models import Category, Product
 
 def home(request):
     # Лаба 5: головна сторінка показує всі товари з БД
-    products = Product.objects.all()
+    # ЗМІНА (промт: "товари без наявності знизу") — сортування: спочатку є в наявності, потім немає
+    products = Product.objects.order_by('-in_stock', 'name')
     context = {
         'title': 'Ласкаво просимо в наш магазин!',
         'message': 'Це головна сторінка нашого інтернет-магазину',
@@ -21,20 +22,24 @@ def about(request):
     return render(request, 'shop/about.html', context)
 
 def products(request):
-    # Лаба 5: сторінка категорій / продукти з фільтрацією за ID категорії
+    # Лаба 5: сторінка продуктів з фільтрацією за категорією
     # Отримуємо параметр 'category' з URL (наприклад: /products/?category=1)
     category_id = request.GET.get('category')
-    products = Product.objects.all()  # Спочатку отримуємо всі товари
-    
-    # Якщо користувач вибрав категорію, фільтруємо товари по category_id
+
+    # ЗМІНА (промт: "товари без наявності знизу") — сортування: спочатку є в наявності, потім немає
+    products = Product.objects.order_by('-in_stock', 'name')
+
+    # Якщо користувач вибрав категорію — фільтруємо
     if category_id and category_id.isdigit():
         products = products.filter(category_id=category_id)
 
     context = {
         'title': 'Наші продукти',
-        'products': products,  # Товари для відображення
-        'categories': Category.objects.all(),  # Список всіх категорій для меню
-        'selected_category': int(category_id) if category_id and category_id.isdigit() else None,  # Поточна вибрана категорія
+        'products': products,
+        'categories': Category.objects.all(),
+        # ЗМІНА (промт: "товари без наявності знизу") — передаємо об'єкт Category (не просто int),
+        # щоб шаблон міг відображати назву вибраної категорії через selected_category.name
+        'selected_category': Category.objects.filter(id=category_id).first() if category_id and category_id.isdigit() else None,
     }
     return render(request, 'shop/products.html', context)
 
@@ -48,12 +53,10 @@ def contact(request):
     return render(request, 'shop/contact.html', context)
 
 def product_detail(request, product_id):
-    # Лаба 6: детальна сторінка товару бере дані з БД по ID
-    # product_id передається з URL (наприклад: /product/1/)
-    product = Product.objects.get(id=product_id)  # Отримуємо товар по ID
+    product = Product.objects.get(id=product_id)
     context = {
         'title': product.name,
-        'product': product,  # Викладаємо весь об'єкт товару в контекст
+        'product': product,
         'categories': Category.objects.all(),
     }
     return render(request, 'shop/product_detail.html', context)

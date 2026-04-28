@@ -1,0 +1,430 @@
+/* ============================================================
+   FlowerBooM — styles.css
+   Єдиний файл стилів для всього проєкту.
+
+   ЗМІНА (промт: "перенести CSS в окрему папку + static метод"):
+   Весь CSS об'єднано в один файл shop/static/shop/css/styles.css.
+   Підключається в base.html через {% load static %}
+   та {% static 'shop/css/styles.css' %} — без хардкоду шляху.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   ЗМІНА (промт: "футер завжди внизу незалежно від розширення"):
+   body — flex-колонка з min-height 100vh.
+   main — flex:1 0 auto, розтягується і виштовхує футер донизу.
+   Працює на будь-якому розмірі екрану, навіть якщо сторінка порожня.
+   ------------------------------------------------------------ */
+body {
+    background-color: #c8dfc7;
+    color: #1f3d2d;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+main.container {
+    flex: 1 0 auto;
+}
+
+
+/* ------------------------------------------------------------
+   Navbar — фірмовий зелений колір
+   ------------------------------------------------------------ */
+.navbar {
+    background-color: #2f6f45 !important;
+}
+
+.navbar .nav-link,
+.navbar-brand,
+.navbar-toggler-icon {
+    color: #f5f8f2 !important;
+}
+
+.navbar .nav-link.active,
+.navbar .nav-link:hover {
+    color: #e8f5e9 !important;
+}
+
+.dropdown-menu {
+    background-color: #eef8ef;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: #d8efdb;
+}
+
+
+/* ------------------------------------------------------------
+   ЗМІНА (промт: "футер завжди внизу незалежно від розширення"):
+   flex-shrink:0 — футер не стискується, завжди залишається внизу.
+   ------------------------------------------------------------ */
+footer {
+    flex-shrink: 0;
+    background-color: #2f6f45;
+    color: #f5f8f2;
+}
+
+/* ЗМІНА (промт: "наповнити сайт як для релізу"):
+   Стилі посилань у футері — додані разом з реальним контентом футера */
+footer a {
+    color: #b8dcbb;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+footer a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+
+/* ------------------------------------------------------------
+   Картки товарів — тінь та hover-анімація
+   ------------------------------------------------------------ */
+.card {
+    border: none;
+    background-color: #ffffff;
+    box-shadow: 0 8px 24px rgba(31, 61, 45, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(31, 61, 45, 0.14);
+}
+
+
+/* ------------------------------------------------------------
+   Кнопки — фірмовий зелений колір
+   ------------------------------------------------------------ */
+.btn-success,
+.btn-primary {
+    background-color: #4f8a5a !important;
+    border-color: #4f8a5a !important;
+}
+
+.btn-success:hover,
+.btn-primary:hover {
+    background-color: #3f7249 !important;
+    border-color: #3f7249 !important;
+}
+
+
+/* ------------------------------------------------------------
+   ЗМІНА (промт: "товари без наявності — сірі + знизу"):
+   .out-of-stock — клас додається в шаблоні якщо product.in_stock = False.
+   opacity + grayscale дають сірий вигляд.
+   Сортування (знизу) — відбувається у views.py через order_by('-in_stock').
+   hover вимкнено щоб сірі картки не "підстрибували" як звичайні.
+   ------------------------------------------------------------ */
+.out-of-stock {
+    opacity: 0.55;
+    filter: grayscale(80%);
+}
+
+.out-of-stock:hover {
+    transform: none;
+    box-shadow: 0 8px 24px rgba(31, 61, 45, 0.08);
+}
+
+.out-of-stock .card-title {
+    color: #888;
+}
+
+
+/* ------------------------------------------------------------
+   ЗМІНА (промт: "наповнити сайт як для релізу"):
+   Героїчний банер на головній сторінці (home.html).
+   Раніше був простий текстовий заголовок.
+   ------------------------------------------------------------ */
+.hero-banner {
+    background: linear-gradient(135deg, #2f6f45 0%, #4f8a5a 50%, #1f3d2d 100%);
+    border-radius: 1rem;
+    padding: 3.5rem 2rem;
+    margin-bottom: 2.5rem;
+    color: #fff;
+    box-shadow: 0 10px 40px rgba(31, 61, 45, 0.18);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-banner::before {
+    content: "🌸";
+    font-size: 8rem;
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.18;
+    pointer-events: none;
+}
+
+.hero-banner h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.hero-banner .lead {
+    font-size: 1.2rem;
+    opacity: 0.92;
+}
+
+.section-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #1f3d2d;
+    border-left: 4px solid #4f8a5a;
+    padding-left: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.product-card-img {
+    height: 220px;
+    object-fit: cover;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+
+/* ------------------------------------------------------------
+   Сторінка продуктів (products.html)
+   ------------------------------------------------------------ */
+.products-header {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1f3d2d;
+    margin-bottom: 1.5rem;
+}
+
+.empty-category {
+    color: #6c757d;
+    font-style: italic;
+    padding: 2rem 0;
+}
+
+
+/* ------------------------------------------------------------
+   Детальна сторінка товару (product_detail.html)
+   ------------------------------------------------------------ */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: #4f8a5a;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: #2f6f45;
+    text-decoration: underline;
+}
+
+.product-image-wrap {
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(31, 61, 45, 0.13);
+}
+
+.product-image-wrap img {
+    width: 100%;
+    height: 420px;
+    object-fit: cover;
+    display: block;
+}
+
+.product-info-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(31, 61, 45, 0.08);
+}
+
+.product-price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2f6f45;
+}
+
+.product-info-card .list-group-item {
+    border-color: #e8f5e9;
+    padding: 0.75rem 0;
+}
+
+.btn-buy {
+    background-color: #4f8a5a !important;
+    border-color: #4f8a5a !important;
+    font-size: 1.1rem;
+    padding: 0.7rem 2rem;
+    border-radius: 0.6rem;
+}
+
+.btn-buy:hover {
+    background-color: #3f7249 !important;
+    border-color: #3f7249 !important;
+}
+
+
+/* ------------------------------------------------------------
+   ЗМІНА (промт: "наповнити сайт як для релізу"):
+   Сторінка "Про нас" (about.html) — раніше була повністю порожньою.
+   Додано: банер, секція переваг, картки команди.
+   ------------------------------------------------------------ */
+.about-hero {
+    background: linear-gradient(135deg, #2f6f45, #4f8a5a);
+    border-radius: 1rem;
+    color: #fff;
+    padding: 3rem 2rem;
+    margin-bottom: 2.5rem;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(31, 61, 45, 0.15);
+}
+
+.about-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+}
+
+.about-section-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #1f3d2d;
+    border-left: 4px solid #4f8a5a;
+    padding-left: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.advantage-card {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1.8rem;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(31, 61, 45, 0.08);
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.advantage-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(31, 61, 45, 0.14);
+}
+
+.advantage-icon {
+    font-size: 2.8rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.advantage-card h5 {
+    font-weight: 600;
+    color: #2f6f45;
+    margin-bottom: 0.5rem;
+}
+
+.team-card {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(31, 61, 45, 0.07);
+}
+
+.team-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2f6f45, #4f8a5a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1rem;
+    color: #fff;
+}
+
+
+/* ------------------------------------------------------------
+   ЗМІНА (промт: "наповнити сайт як для релізу"):
+   Сторінка "Контакти" (contact.html) — раніше була повністю порожньою.
+   Додано: картки контактів, розклад роботи, соцмережі, placeholder карти.
+   ------------------------------------------------------------ */
+.contact-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.contact-header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1f3d2d;
+}
+
+.contact-header p {
+    color: #4f8a5a;
+    font-size: 1.1rem;
+}
+
+.contact-card {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(31, 61, 45, 0.09);
+    height: 100%;
+    transition: transform 0.2s;
+}
+
+.contact-card:hover {
+    transform: translateY(-3px);
+}
+
+.contact-icon {
+    font-size: 2.6rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.contact-card h5 {
+    font-weight: 600;
+    color: #2f6f45;
+    margin-bottom: 0.5rem;
+}
+
+.contact-card p,
+.contact-card a {
+    color: #3d6b4f;
+    font-size: 1rem;
+}
+
+.contact-card a:hover {
+    color: #1f3d2d;
+}
+
+.hours-table th {
+    color: #2f6f45;
+    font-weight: 600;
+    border-top: none;
+}
+
+.hours-table td {
+    border-top: none;
+}
+
+.map-placeholder {
+    background: linear-gradient(135deg, #eef8ef, #d8efdb);
+    border-radius: 1rem;
+    padding: 3rem 2rem;
+    text-align: center;
+    border: 2px dashed #4f8a5a;
+}
+
+.map-placeholder span {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+}
