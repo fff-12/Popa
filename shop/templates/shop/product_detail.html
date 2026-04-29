@@ -30,18 +30,36 @@
         <div class="product-info-card">
             <div class="mb-2">
                 <span class="badge bg-success">{{ product.category.name }}</span>
-                {# ЗМІНА (промт: "відображати чи є товар чи ні") — бейдж "Немає в наявності" на детальній #}
                 {% if not product.in_stock %}
                     <span class="badge bg-secondary ms-1">Немає в наявності</span>
                 {% endif %}
             </div>
             <h1 class="h3 fw-bold mb-2">{{ product.name }}</h1>
+
+            {# ЛАБ 7: відображення середнього рейтингу (береться з поля Product.rating) #}
+            <div class="mb-3 d-flex align-items-center gap-2">
+                {% if product.rating_count > 0 %}
+                    <span class="rating-stars">
+                        {% for i in "12345" %}
+                            <i class="bi bi-star{% if forloop.counter <= product.rating %}-fill text-warning{% else %} text-secondary{% endif %}"></i>
+                        {% endfor %}
+                    </span>
+                    <span class="fw-bold text-warning">{{ product.rating }}</span>
+                    <span class="text-muted small">
+                        ({{ product.rating_count }}
+                        {% if product.rating_count == 1 %}оцінка{% elif product.rating_count < 5 %}оцінки{% else %}оцінок{% endif %})
+                    </span>
+                {% else %}
+                    <span class="text-muted small"><i class="bi bi-star me-1"></i>Ще немає оцінок — будьте першим!</span>
+                {% endif %}
+            </div>
+
             <p class="product-price mb-3">{{ product.price }} грн</p>
             <p class="text-muted mb-4">{{ product.description }}</p>
+
             <ul class="list-group list-group-flush mb-4">
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <span>Наявність</span>
-                    {# ЗМІНА (промт: "відображати чи є товар чи ні") — бейдж зелений/сірий залежно від in_stock #}
                     <span class="badge bg-{{ product.in_stock|yesno:'success,secondary' }} rounded-pill">
                         <i class="bi bi-{% if product.in_stock %}check-circle{% else %}x-circle{% endif %} me-1"></i>
                         {% if product.in_stock %}В наявності{% else %}Немає{% endif %}
@@ -55,11 +73,14 @@
                 </li>
             </ul>
 
-            {# ЗМІНА (промт: "товари без наявності знизу") — кнопка "Купити" заблокована якщо немає товару #}
+            {# ЛАБ 7: кнопка «Додати в кошик» через POST-форму #}
             {% if product.in_stock %}
-                <button class="btn btn-success btn-lg btn-buy">
-                    <i class="bi bi-cart-plus me-2"></i>Купити
-                </button>
+                <form action="{% url 'add_to_cart' product.id %}" method="POST" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-lg btn-buy">
+                        <i class="bi bi-cart-plus me-2"></i>Додати в кошик
+                    </button>
+                </form>
             {% else %}
                 <button class="btn btn-secondary btn-lg" disabled>
                     <i class="bi bi-x-circle me-2"></i>Немає в наявності
@@ -68,5 +89,96 @@
         </div>
     </div>
 </div>
+
+{# ЛАБ 7: форма виставлення оцінки товару #}
+<div class="row mt-5">
+    <div class="col-12">
+        <h4 class="fw-bold mb-4"><i class="bi bi-star-half me-2"></i>Оцінити товар</h4>
+    </div>
+    <div class="col-lg-5">
+        <div class="rating-form-card">
+            <form action="{% url 'product_detail' product.id %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="submit_rating" value="1">
+
+                <div class="mb-3">
+                    <label class="form-label">Ваше ім'я <span class="text-danger">*</span></label>
+                    <input type="text" name="reviewer_name" class="form-control"
+                           placeholder="Наприклад: Олена" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Оцінка <span class="text-danger">*</span></label>
+                    <div class="d-flex gap-3 star-selector">
+                        {% for i in "12345" %}
+                            <div>
+                                <input class="form-check-input visually-hidden"
+                                       type="radio" name="rating"
+                                       id="star{{ forloop.counter }}"
+                                       value="{{ forloop.counter }}" required>
+                                <label class="star-label" for="star{{ forloop.counter }}">
+                                    <i class="bi bi-star-fill" style="font-size:1.8rem;"></i>
+                                    <span class="d-block text-center" style="font-size:0.7rem;">{{ forloop.counter }}</span>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-send me-2"></i>Відправити оцінку
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-7 d-flex align-items-center justify-content-center">
+        <div class="text-center">
+            {% if product.rating_count > 0 %}
+                <div style="font-size:4rem; font-weight:bold; color:#2f6f45;">{{ product.rating }}</div>
+                <div class="mb-2" style="font-size:1.4rem;">
+                    {% for i in "12345" %}
+                        <i class="bi bi-star{% if forloop.counter <= product.rating %}-fill text-warning{% else %} text-secondary{% endif %}"></i>
+                    {% endfor %}
+                </div>
+                <div class="text-muted">
+                    На основі {{ product.rating_count }}
+                    {% if product.rating_count == 1 %}оцінки{% else %}оцінок{% endif %}
+                </div>
+            {% else %}
+                <div class="text-muted">
+                    <i class="bi bi-star" style="font-size:3rem; opacity:0.3;"></i>
+                    <p class="mt-2">Оцінок ще немає</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{# JS: підсвічування зірок при наведенні та виборі #}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const labels = document.querySelectorAll('.star-label');
+    const inputs = document.querySelectorAll('input[name="rating"]');
+
+    function highlight(upTo) {
+        labels.forEach((lbl, idx) => {
+            lbl.style.color = idx <= upTo ? '#f5a623' : '#ccc';
+        });
+    }
+
+    inputs.forEach((inp, idx) => {
+        inp.addEventListener('change', () => highlight(idx));
+    });
+
+    labels.forEach((lbl, idx) => {
+        lbl.addEventListener('mouseover', () => highlight(idx));
+        lbl.addEventListener('mouseout', () => {
+            const checked = [...inputs].findIndex(i => i.checked);
+            highlight(checked >= 0 ? checked : -1);
+        });
+    });
+});
+</script>
 
 {% endblock %}

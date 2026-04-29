@@ -1,6 +1,6 @@
 {% extends "shop/base.html" %}
 
-{% block title %}{% if selected_category %}{{ selected_category.name }}{% else %}Всі продукти{% endif %} — FlowerBooM{% endblock %}
+{% block title %}{% if selected_category %}{{ selected_category.name }}{% else %}Всі продукти{% endif %}{% endblock %}
 
 {% block content %}
 
@@ -11,10 +11,6 @@
 <div class="row">
     {% for product in products %}
     <div class="col-md-4 mb-4">
-
-        {# ЗМІНА (промт: "товари без наявності знизу + сірі") — #}
-        {# клас out-of-stock додає opacity та grayscale через styles.css #}
-        {# сортування відбувається у views.py: order_by('-in_stock', 'name') #}
         <div class="card h-100 {% if not product.in_stock %}out-of-stock{% endif %}">
             {% if product.photo %}
                 <img src="{{ product.photo.url }}" class="card-img-top product-card-img" alt="{{ product.name }}">
@@ -26,17 +22,32 @@
                 <p class="card-text text-muted small">{{ product.description|truncatechars:100 }}</p>
                 <p class="card-text fw-bold text-success">{{ product.price }} грн</p>
 
-                {# ЗМІНА (промт: "відображати чи є товар чи ні") — іконка + текст наявності #}
+                {# ЛАБ 7: мінірейтинг на картці товару #}
+                <p class="card-text small mb-1">
+                    {% if product.rating_count > 0 %}
+                        {% for i in "12345" %}
+                            <i class="bi bi-star{% if forloop.counter <= product.rating %}-fill text-warning{% else %} text-secondary{% endif %}"></i>
+                        {% endfor %}
+                        <span class="ms-1 text-muted">{{ product.rating }} ({{ product.rating_count }})</span>
+                    {% else %}
+                        <span class="text-muted"><i class="bi bi-star me-1"></i>Немає оцінок</span>
+                    {% endif %}
+                </p>
+
                 <p class="card-text small {% if product.in_stock %}text-success{% else %}text-secondary{% endif %}">
                     <i class="bi bi-{% if product.in_stock %}check-circle{% else %}x-circle{% endif %} me-1"></i>
                     {% if product.in_stock %}В наявності{% else %}Немає в наявності{% endif %}
                 </p>
 
-                <div class="mt-auto d-flex gap-2">
+                <div class="mt-auto d-flex gap-2 flex-wrap">
                     <a href="{% url 'product_detail' product.id %}" class="btn btn-primary btn-sm">Переглянути</a>
-                    {# ЗМІНА (промт: "товари без наявності знизу") — кнопка "Купити" схована якщо товару немає #}
                     {% if product.in_stock %}
-                        <button class="btn btn-success btn-sm">Купити</button>
+                        <form action="{% url 'add_to_cart' product.id %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="bi bi-cart-plus me-1"></i>В кошик
+                            </button>
+                        </form>
                     {% endif %}
                 </div>
             </div>

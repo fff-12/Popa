@@ -9,9 +9,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     {% load static %}
-    {# ЗМІНА (промт: "перенести CSS в окрему папку + static метод") — #}
-    {# весь CSS винесено в shop/static/shop/css/styles.css, #}
-    {# підключається через {% static %} замість прямого шляху #}
     <link rel="stylesheet" href="{% static 'shop/css/styles.css' %}">
 </head>
 <body>
@@ -52,23 +49,38 @@
                         <a class="nav-link" href="{% url 'contact' %}">Контакти</a>
                     </li>
                 </ul>
-                <a href="#" class="btn btn-outline-light">
+
+                {# ЛАБ 7: кнопка кошика з лічильником товарів з сесії #}
+                <a href="{% url 'cart' %}" class="btn btn-outline-light position-relative">
                     <i class="bi bi-cart"></i> Кошик
+                    {% if cart_count and cart_count > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ cart_count }}
+                        </span>
+                    {% endif %}
                 </a>
             </div>
         </div>
     </nav>
 
-    {# ЗМІНА (промт: "футер завжди внизу") — main має flex:1 0 auto в CSS, #}
-    {# що розтягує його і виштовхує футер донизу навіть на порожній сторінці #}
     <main class="container mt-4">
+        {# ЛАБ 7: відображення flash-повідомлень (success/error/warning) #}
+        {% if messages %}
+            <div class="mb-3">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         {% block content %}
         {% endblock %}
     </main>
 
-    {# ЗМІНА (промт: "футер завжди внизу") — footer має flex-shrink:0 в CSS, #}
-    {# не стискується і завжди залишається під контентом незалежно від висоти сторінки #}
-    {# ЗМІНА (промт: "наповнити сайт як для релізу") — додано адресу, телефон, email, навігація #}
+    {# ЛАБ 7: форма підписки на розсилку у футері #}
     <footer class="text-light mt-5 py-4">
         <div class="container">
             <div class="row">
@@ -95,6 +107,25 @@
                     <p class="mb-0"><i class="bi bi-envelope me-1"></i> FlowerBooM@gmail.com</p>
                 </div>
             </div>
+
+            {# ЛАБ 7: форма підписки на інформаційну розсилку #}
+            <div class="newsletter-box mt-3">
+                <h6 class="fw-bold mb-2"><i class="bi bi-envelope-heart me-2"></i>Підписка на розсилку</h6>
+                <p class="small mb-3" style="opacity:0.85;">
+                    Отримуйте новини про акції та нові букети першими!
+                </p>
+                <form action="{% url 'newsletter_subscribe' %}" method="POST" class="d-flex flex-wrap gap-2">
+                    {% csrf_token %}
+                    <input type="text" name="sub_name" class="form-control form-control-sm newsletter-input"
+                           placeholder="Ваше ім'я" required>
+                    <input type="email" name="sub_email" class="form-control form-control-sm newsletter-input"
+                           placeholder="Ваш email" required>
+                    <button type="submit" class="btn btn-success btn-sm">
+                        <i class="bi bi-send me-1"></i>Підписатися
+                    </button>
+                </form>
+            </div>
+
             <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
             <div class="text-center" style="opacity:0.75;">
                 <small>&copy; 2026 FlowerBooM. Всі права захищені.</small>
