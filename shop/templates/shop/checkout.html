@@ -1,0 +1,278 @@
+{% extends "shop/base.html" %}
+
+{% block title %}Оформлення замовлення — FlowerBooM{% endblock %}
+
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-transparent px-0">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Головна</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'cart' %}">Кошик</a></li>
+                <li class="breadcrumb-item active">Оформлення</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold"><i class="bi bi-bag-check me-2"></i>Оформлення замовлення</h2>
+    </div>
+</div>
+
+<form method="POST" id="checkout-form">
+{% csrf_token %}
+{# прихований PayPal order id — заповнюється JS після підтвердження PayPal #}
+<input type="hidden" name="paypal_order_id" id="paypal_order_id">
+
+<div class="row">
+
+    {# ─── ЛІВА КОЛОНКА: форма ─────────────────────────────────────── #}
+    <div class="col-lg-7 mb-4">
+
+        {# === 1. Контактні дані === #}
+        <div class="checkout-section mb-4">
+            <h5 class="checkout-section-title">
+                <span class="step-badge">1</span> Контактні дані
+            </h5>
+
+            {# PayPal auto-fill button #}
+            <div class="paypal-autofill-block mb-3">
+                <p class="small text-muted mb-2">
+                    <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
+                    Автозаповнення з PayPal — ваше ім'я та email підставляться автоматично
+                </p>
+                <div id="paypal-autofill-btn"></div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <label class="form-label">Ім'я <span class="text-danger">*</span></label>
+                    <input type="text" name="first_name" id="first_name" class="form-control"
+                           placeholder="Олена" required value="{{ request.POST.first_name }}">
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label">Прізвище <span class="text-danger">*</span></label>
+                    <input type="text" name="last_name" id="last_name" class="form-control"
+                           placeholder="Петренко" required value="{{ request.POST.last_name }}">
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                    <input type="email" name="email" id="email_field" class="form-control"
+                           placeholder="you@example.com" required value="{{ request.POST.email }}">
+                    <div class="form-text">На цю адресу прийде підтвердження замовлення</div>
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label">Телефон <span class="text-danger">*</span></label>
+                    <input type="tel" name="phone" id="phone_field" class="form-control"
+                           placeholder="+380 50 123 4567" required value="{{ request.POST.phone }}">
+                </div>
+            </div>
+        </div>
+
+        {# === 2. Доставка === #}
+        <div class="checkout-section mb-4">
+            <h5 class="checkout-section-title">
+                <span class="step-badge">2</span> Спосіб доставки
+            </h5>
+
+            <div class="delivery-options">
+                {# Самовивіз #}
+                <label class="delivery-card" id="card-pickup">
+                    <input type="radio" name="delivery_method" value="pickup"
+                           class="delivery-radio" checked>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-shop me-2 text-success"></i>
+                            <strong>Самовивіз</strong>
+                            <div class="small text-muted">Луцьк, пр. Молоді, FlowerBooM</div>
+                        </div>
+                        <span class="badge bg-success">Безкоштовно</span>
+                    </div>
+                </label>
+
+                {# Нова Пошта #}
+                <label class="delivery-card" id="card-nova_poshta">
+                    <input type="radio" name="delivery_method" value="nova_poshta"
+                           class="delivery-radio">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-truck me-2 text-danger"></i>
+                            <strong>Нова Пошта</strong>
+                            <div class="small text-muted">Доставка на відділення або адресна</div>
+                        </div>
+                        <span class="badge bg-secondary">60 грн</span>
+                    </div>
+                </label>
+
+                {# Укрпошта #}
+                <label class="delivery-card" id="card-ukrposhta">
+                    <input type="radio" name="delivery_method" value="ukrposhta"
+                           class="delivery-radio">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-envelope-open me-2 text-primary"></i>
+                            <strong>Укрпошта</strong>
+                            <div class="small text-muted">Доставка на поштове відділення</div>
+                        </div>
+                        <span class="badge bg-secondary">40 грн</span>
+                    </div>
+                </label>
+
+                {# Meest #}
+                <label class="delivery-card" id="card-meest">
+                    <input type="radio" name="delivery_method" value="meest"
+                           class="delivery-radio">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-lightning me-2 text-warning"></i>
+                            <strong>Meest Express</strong>
+                            <div class="small text-muted">Швидка доставка по Україні</div>
+                        </div>
+                        <span class="badge bg-secondary">55 грн</span>
+                    </div>
+                </label>
+            </div>
+
+            {# Поля міста/відділення — показуються тільки для кур'єрської доставки #}
+            <div id="delivery-address-block" class="mt-3" style="display:none;">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label">Місто <span class="text-danger">*</span></label>
+                        <input type="text" name="city" id="city_field" class="form-control"
+                               placeholder="Луцьк" value="{{ request.POST.city }}">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" id="branch-label">Відділення / Адреса</label>
+                        <input type="text" name="branch" id="branch_field" class="form-control"
+                               placeholder="Відділення №3 або вул. Лесі Українки, 12"
+                               value="{{ request.POST.branch }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# === 3. Оплата === #}
+        <div class="checkout-section mb-4">
+            <h5 class="checkout-section-title">
+                <span class="step-badge">3</span> Спосіб оплати
+            </h5>
+
+            <div class="payment-options">
+                {# Готівка #}
+                <label class="payment-card" id="pay-card-cash">
+                    <input type="radio" name="payment_method" value="cash"
+                           class="payment-radio" checked>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-cash-coin fs-4 text-success"></i>
+                        <div>
+                            <strong>Готівка при отриманні</strong>
+                            <div class="small text-muted">Оплата кур'єру або на відділенні</div>
+                        </div>
+                    </div>
+                </label>
+
+                {# Банківська картка #}
+                <label class="payment-card" id="pay-card-card">
+                    <input type="radio" name="payment_method" value="card"
+                           class="payment-radio">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-credit-card fs-4 text-primary"></i>
+                        <div>
+                            <strong>Банківська картка</strong>
+                            <div class="small text-muted">Visa / Mastercard</div>
+                        </div>
+                    </div>
+                </label>
+
+                {# PayPal #}
+                <label class="payment-card" id="pay-card-paypal">
+                    <input type="radio" name="payment_method" value="paypal"
+                           class="payment-radio">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-paypal fs-4" style="color:#003087;"></i>
+                        <div>
+                            <strong>PayPal</strong>
+                            <div class="small text-muted">Безпечна оплата через PayPal</div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            {# PayPal кнопка — з'являється при виборі PayPal #}
+            <div id="paypal-payment-block" class="mt-3" style="display:none;">
+                <div class="alert alert-info py-2 small mb-2">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Натисніть кнопку PayPal нижче. Після підтвердження оплати форма заповниться автоматично.
+                </div>
+                <div id="paypal-payment-btn"></div>
+            </div>
+        </div>
+
+        {# === 4. Коментар === #}
+        <div class="checkout-section mb-4">
+            <h5 class="checkout-section-title">
+                <span class="step-badge">4</span> Коментар (необов'язково)
+            </h5>
+            <textarea name="comment" class="form-control" rows="3"
+                      placeholder="Побажання щодо доставки, отримувач, особлива упаковка тощо...">{{ request.POST.comment }}</textarea>
+        </div>
+
+    </div>
+
+    {# ─── ПРАВА КОЛОНКА: підсумок ─────────────────────────────────── #}
+    <div class="col-lg-5">
+        <div class="cart-summary-card" style="position:sticky; top:1rem;">
+            <h5 class="fw-bold mb-3">Ваше замовлення</h5>
+
+            {% for item in cart_items %}
+            <div class="d-flex justify-content-between align-items-start mb-2 summary-item">
+                <div>
+                    <div class="fw-semibold" style="font-size:0.9rem;">{{ item.product.name }}</div>
+                    <div class="text-muted" style="font-size:0.8rem;">{{ item.product.price }} грн × {{ item.quantity }}</div>
+                </div>
+                <div class="fw-bold text-success">{{ item.subtotal }} грн</div>
+            </div>
+            {% endfor %}
+
+            <hr>
+            <div class="d-flex justify-content-between mb-1">
+                <span>Сума товарів:</span>
+                <span>{{ subtotal }} грн</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span>Доставка:</span>
+                <span id="delivery-cost-display">0 грн</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between mb-4">
+                <span class="fw-bold fs-5">Разом:</span>
+                <span class="fw-bold fs-5 text-success" id="total-display">{{ subtotal }} грн</span>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 btn-lg" id="submit-btn">
+                <i class="bi bi-bag-check me-2"></i>Підтвердити замовлення
+            </button>
+            <div class="text-center mt-2">
+                <small class="text-muted">
+                    <i class="bi bi-shield-check me-1 text-success"></i>Безпечне оформлення
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+{# PayPal SDK — підключаємо з client-id із settings.py #}
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&components=buttons"></script>
+
+{% block extra_js %}
+{% load static %}
+<script>
+// Передаємо дані з Django в JS через глобальну змінну (без inline-логіки)
+window.CHECKOUT_DATA = {
+    subtotal: {{ subtotal }},
+    deliveryCosts: { pickup: 0, nova_poshta: 60, ukrposhta: 40, meest: 55 }
+};
+</script>
+<script src="{% static 'shop/js/checkout.js' %}"></script>
+{% endblock %}
+
+{% endblock %}

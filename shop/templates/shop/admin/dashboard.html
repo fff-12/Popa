@@ -1,0 +1,86 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>🔐 Панель керування адміністратора</h1>
+            <p class="text-muted">Ласкаво просимо, {{ user.first_name }}!</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title">📦 Товари</h5>
+                    <h2 class="text-primary">{{ total_products }}</h2>
+                    <a href="{% url 'admin_products' %}" class="btn btn-primary btn-sm mt-3">Управління</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title">📂 Категорії</h5>
+                    <h2 class="text-success">{{ total_categories }}</h2>
+                    <a href="{% url 'admin_categories' %}" class="btn btn-success btn-sm mt-3">Управління</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <h5 class="card-title">📋 Усього замовлень</h5>
+                    <h2 class="text-warning">{{ total_orders }}</h2>
+                    <a href="{% url 'admin_orders' %}" class="btn btn-warning btn-sm mt-3">Переглянути</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <h5 class="card-title">⏳ Очікують</h5>
+                    <h2 class="text-danger">{{ pending_orders }}</h2>
+                    <a href="{% url 'admin_orders' %}" class="btn btn-danger btn-sm mt-3">Переглянути</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5>⚙️ Керування сайтом</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{% url 'admin_products' %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">📦 Товари</h6>
+                            </div>
+                            <p class="mb-1">Додавати, редагувати та видаляти товари</p>
+                        </a>
+                        <a href="{% url 'admin_categories' %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">📂 Категорії</h6>
+                            </div>
+                            <p class="mb-1">Управління категоріями товарів</p>
+                        </a>
+                        <a href="{% url 'admin_orders' %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">📋 Замовлення</h6>
+                            </div>
+                            <p class="mb-1">Переглядати та оновлювати статус замовлень</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

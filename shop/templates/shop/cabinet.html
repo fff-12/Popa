@@ -1,0 +1,141 @@
+{% extends "shop/base.html" %}
+{% block title %}{{ title }} — FlowerBooM{% endblock %}
+
+{% block content %}
+
+{# ─── Заголовок кабінету ─── #}
+<div class="cabinet-header mb-4">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="cabinet-avatar">
+            <i class="bi bi-person-circle"></i>
+        </div>
+        <div>
+            <h2 class="mb-0">
+                {{ user.first_name|default:user.username }}
+                {% if user.last_name %} {{ user.last_name }}{% endif %}
+            </h2>
+            <p class="text-muted mb-0 small">
+                <i class="bi bi-envelope me-1"></i>{{ user.email }}
+                {% if user.is_staff %}
+                    <span class="badge bg-danger ms-2">Адміністратор</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="ms-auto d-flex gap-2 flex-wrap">
+            <a href="{% url 'password_reset' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-key me-1"></i>Змінити пароль
+            </a>
+            <form action="{% url 'logout' %}" method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-box-arrow-right me-1"></i>Вийти
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{# ─── Список замовлень ─── #}
+<h4 class="mb-3">
+    <i class="bi bi-bag-check me-2"></i>{{ title }}
+</h4>
+
+{% if orders %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    {% if user.is_staff %}<th>Клієнт</th>{% endif %}
+                    <th>#</th>
+                    <th>Дата</th>
+                    <th>Товари</th>
+                    <th>Доставка</th>
+                    <th>Оплата</th>
+                    <th class="text-end">Сума</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr class="cabinet-order-row" data-bs-toggle="collapse"
+                    data-bs-target="#order-items-{{ order.pk }}" style="cursor:pointer;">
+                    {% if user.is_staff %}
+                    <td>
+                        <strong>{{ order.first_name }} {{ order.last_name }}</strong><br>
+                        <small class="text-muted">{{ order.email }}</small>
+                    </td>
+                    {% endif %}
+                    <td><strong>#{{ order.pk }}</strong></td>
+                    <td class="text-muted small">{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                    <td>{{ order.items.count }} поз.</td>
+                    <td class="small">{{ order.get_delivery_label }}</td>
+                    <td class="small">{{ order.get_payment_label }}</td>
+                    <td class="text-end fw-bold">{{ order.total }} грн</td>
+                    <td>
+                        {% if order.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">{{ order.get_status_label }}</span>
+                        {% elif order.status == 'confirmed' %}
+                            <span class="badge bg-primary">{{ order.get_status_label }}</span>
+                        {% elif order.status == 'delivered' %}
+                            <span class="badge bg-success">{{ order.get_status_label }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ order.get_status_label }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {# Розгортання позицій замовлення #}
+                <tr class="collapse" id="order-items-{{ order.pk }}">
+                    <td colspan="{% if user.is_staff %}8{% else %}7{% endif %}" class="p-0">
+                        <div class="order-items-detail">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Товар</th>
+                                        <th class="text-center">К-ть</th>
+                                        <th class="text-end">Ціна</th>
+                                        <th class="text-end">Сума</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.items.all %}
+                                    <tr>
+                                        <td>{{ item.name }}</td>
+                                        <td class="text-center">{{ item.quantity }}</td>
+                                        <td class="text-end text-muted">{{ item.price }} грн</td>
+                                        <td class="text-end fw-semibold">{{ item.subtotal }} грн</td>
+                                    </tr>
+                                    {% endfor %}
+                                    <tr class="table-light">
+                                        <td colspan="3" class="text-end text-muted">Доставка:</td>
+                                        <td class="text-end">{{ order.delivery_cost }} грн</td>
+                                    </tr>
+                                    <tr class="fw-bold">
+                                        <td colspan="3" class="text-end">Разом:</td>
+                                        <td class="text-end text-success">{{ order.total }} грн</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            {% if order.comment %}
+                                <div class="px-3 pb-3 text-muted small">
+                                    <i class="bi bi-chat-text me-1"></i>Коментар: {{ order.comment }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-bag-x" style="font-size:3rem;color:#ccc;"></i>
+        <p class="mt-3 text-muted">Замовлень ще немає.</p>
+        <a href="{% url 'products' %}" class="btn btn-primary">
+            <i class="bi bi-shop me-2"></i>Перейти до каталогу
+        </a>
+    </div>
+{% endif %}
+
+{% endblock %}

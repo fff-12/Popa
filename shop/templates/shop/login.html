@@ -1,0 +1,58 @@
+{% extends "shop/base.html" %}
+{% block title %}Вхід — FlowerBooM{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+
+        <div class="auth-card">
+            <div class="auth-card-header">
+                <i class="bi bi-box-arrow-in-right fs-1 mb-2 d-block"></i>
+                <h2 class="h4 mb-0">Вхід в акаунт</h2>
+            </div>
+            <div class="auth-card-body">
+
+                <form action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Логін</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" name="username" class="form-control"
+                                   placeholder="Ваш логін" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" class="form-control"
+                                   placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Увійти
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center">
+                    <a href="{% url 'password_reset' %}" class="text-muted small">
+                        <i class="bi bi-key me-1"></i>Забули пароль?
+                    </a>
+                </div>
+                <hr>
+                <p class="text-center mb-0 small">
+                    Ще немає акаунту?
+                    <a href="{% url 'register' %}" class="text-primary fw-semibold">Зареєструватися</a>
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

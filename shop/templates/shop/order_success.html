@@ -1,0 +1,108 @@
+{% extends "shop/base.html" %}
+
+{% block title %}Замовлення прийнято — FlowerBooM{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="success-card text-center mb-4">
+            <div class="success-icon mb-3">
+                <i class="bi bi-check-circle-fill text-success" style="font-size:4rem;"></i>
+            </div>
+            <h2 class="fw-bold mb-1">Замовлення прийнято! 🌸</h2>
+            <p class="text-muted mb-3">
+                Дякуємо, <strong>{{ order.first_name }} {{ order.last_name }}</strong>!<br>
+                Підтвердження надіслано на <strong>{{ order.email }}</strong>.
+            </p>
+            <div class="order-number-badge">
+                Замовлення <span class="fw-bold">#{{ order.pk }}</span>
+            </div>
+        </div>
+
+        {# Деталі замовлення #}
+        <div class="checkout-section mb-4">
+            <h5 class="checkout-section-title">Склад замовлення</h5>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th class="text-center">Кількість</th>
+                        <th class="text-end">Сума</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-end">{{ item.subtotal }} грн</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" class="text-end text-muted">Сума товарів:</td>
+                        <td class="text-end">{{ order.subtotal }} грн</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="text-end text-muted">Доставка:</td>
+                        <td class="text-end">
+                            {% if order.delivery_cost == 0 %}Безкоштовно
+                            {% else %}{{ order.delivery_cost }} грн{% endif %}
+                        </td>
+                    </tr>
+                    <tr class="fw-bold">
+                        <td colspan="2" class="text-end">Разом:</td>
+                        <td class="text-end text-success">{{ order.total }} грн</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        {# Інфо про доставку та оплату #}
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6">
+                <div class="checkout-section h-100">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-truck me-1"></i>Доставка</h6>
+                    <p class="mb-1 text-muted">{{ order.get_delivery_label }}</p>
+                    {% if order.delivery_method != 'pickup' %}
+                        <p class="mb-1 text-muted">{{ order.city }}{% if order.branch %}, {{ order.branch }}{% endif %}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="checkout-section h-100">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-credit-card me-1"></i>Оплата</h6>
+                    <p class="mb-1 text-muted">{{ order.get_payment_label }}</p>
+                    <span class="badge bg-{{ order.status|yesno:'success,warning,secondary' }}
+                        {% if order.status == 'pending' %}bg-warning text-dark
+                        {% elif order.status == 'confirmed' %}bg-success
+                        {% else %}bg-secondary{% endif %}">
+                        {{ order.get_status_label }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {% if order.comment %}
+        <div class="checkout-section mb-4">
+            <h6 class="fw-bold mb-1"><i class="bi bi-chat-text me-1"></i>Ваш коментар</h6>
+            <p class="text-muted mb-0">{{ order.comment }}</p>
+        </div>
+        {% endif %}
+
+        <div class="text-center">
+            <a href="{% url 'products' %}" class="btn btn-success btn-lg me-2">
+                <i class="bi bi-flower1 me-2"></i>Продовжити покупки
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-house me-2"></i>На головну
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

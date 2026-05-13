@@ -1,0 +1,31 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-6">
+            <h1>{% if category %}✏️ Редагувати категорію{% else %}➕ Додати категорію{% endif %}</h1>
+
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="name" class="form-label">Назва категорії *</label>
+                    <input type="text" class="form-control" id="name" name="name" 
+                           value="{{ category.name }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Опис</label>
+                    <textarea class="form-control" id="description" name="description" rows="4">{{ category.description }}</textarea>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">💾 Зберегти</button>
+                    <a href="{% url 'admin_categories' %}" class="btn btn-secondary">← Скасувати</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

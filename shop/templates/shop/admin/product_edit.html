@@ -1,0 +1,55 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-6">
+            <h1>{% if product %}✏️ Редагувати товар{% else %}➕ Додати товар{% endif %}</h1>
+
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="name" class="form-label">Назва товара *</label>
+                    <input type="text" class="form-control" id="name" name="name" 
+                           value="{{ product.name }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Опис</label>
+                    <textarea class="form-control" id="description" name="description" rows="4">{{ product.description }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="category" class="form-label">Категорія *</label>
+                    <select class="form-control" id="category" name="category" required>
+                        <option value="">-- Виберіть категорію --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="price" class="form-label">Ціна (грн) *</label>
+                    <input type="number" class="form-control" id="price" name="price" 
+                           value="{{ product.price }}" step="0.01" min="0.01" required>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="in_stock" name="in_stock" 
+                           {% if product.in_stock %}checked{% endif %}>
+                    <label class="form-check-label" for="in_stock">
+                        У наявності
+                    </label>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">💾 Зберегти</button>
+                    <a href="{% url 'admin_products' %}" class="btn btn-secondary">← Скасувати</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

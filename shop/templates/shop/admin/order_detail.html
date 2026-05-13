@@ -1,0 +1,146 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>📋 Замовлення #{{ order.id }}</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'admin_orders' %}" class="btn btn-secondary">← До списку</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5>👤 Інформація клієнта</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Ім'я:</strong> {{ order.first_name }} {{ order.last_name }}</p>
+                    <p><strong>Email:</strong> {{ order.email }}</p>
+                    <p><strong>Телефон:</strong> {{ order.phone }}</p>
+                    <p><strong>Дата замовлення:</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5>📦 Товари в замовленні</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Товар</th>
+                                <th>Кількість</th>
+                                <th>Ціна</th>
+                                <th>Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items.all %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.price }} грн</td>
+                                <td><strong>{{ item.subtotal }} грн</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5>🚚 Доставка</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Спосіб доставки:</strong> {{ order.get_delivery_label }}</p>
+                    <p><strong>Вартість доставки:</strong> {{ order.delivery_cost }} грн</p>
+                    {% if order.city %}
+                    <p><strong>Місто:</strong> {{ order.city }}</p>
+                    {% endif %}
+                    {% if order.branch %}
+                    <p><strong>Відділення/Адреса:</strong> {{ order.branch }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5>💳 Оплата</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Спосіб оплати:</strong> {{ order.get_payment_label }}</p>
+                    {% if order.paypal_order_id %}
+                    <p><strong>PayPal Order ID:</strong> {{ order.paypal_order_id }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5>💰 Підсумок</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6"><strong>Сума товарів:</strong></div>
+                        <div class="col-6 text-end">{{ order.subtotal }} грн</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Доставка:</strong></div>
+                        <div class="col-6 text-end">{{ order.delivery_cost }} грн</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6"><h5><strong>Разом:</strong></h5></div>
+                        <div class="col-6 text-end"><h5><strong>{{ order.total }} грн</strong></h5></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5>🔄 Змінити статус</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <select class="form-control" name="status" required>
+                                <option value="">-- Виберіть статус --</option>
+                                {% for status_code, status_label in status_choices %}
+                                <option value="{{ status_code }}" {% if order.status == status_code %}selected{% endif %}>
+                                    {{ status_label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">✓ Оновити статус</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if order.comment %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5>📝 Коментар клієнта</h5>
+                </div>
+                <div class="card-body">
+                    {{ order.comment }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
