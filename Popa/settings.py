@@ -131,9 +131,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your_email@gmail.com'       # ← замінити на свій Gmail
-EMAIL_HOST_PASSWORD = 'your_app_password'       # ← 16-значний пароль застосунку Gmail
-DEFAULT_FROM_EMAIL = 'FlowerBooM <your_email@gmail.com>'  # ← замінити
+EMAIL_HOST_USER = 'rewino843@gmail.com'      # ← замінити на свій Gmail
+EMAIL_HOST_PASSWORD = 'xhcvgbgamxhvaasj'      # ← 16-значний пароль застосунку Gmail
+DEFAULT_FROM_EMAIL = 'FlowerBooM rewino843@gmail.com'  # ← замінити
 
 # ─── PayPal Sandbox ───────────────────────────────────────────────────────────
 # Для тесту використовується Sandbox. Замініть на реальний client-id для production.
