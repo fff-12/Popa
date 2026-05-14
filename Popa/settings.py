@@ -122,29 +122,3 @@ STATIC_URL = 'static/'
 # MEDIA_ROOT = BASE_DIR / 'media' - фізична папка на сервері для зберігання фото
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-# ─── ЛАБ 7: Email налаштування ────────────────────────────────────────────────
-# Для відправки листів через Gmail.
-# ОБОВ'ЯЗКОВО: замініть EMAIL_HOST_USER і EMAIL_HOST_PASSWORD на свої дані.
-# В Gmail потрібно увімкнути "Паролі застосунків" (App Passwords) у налаштуваннях акаунту.
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'rewino843@gmail.com'      # ← замінити на свій Gmail
-EMAIL_HOST_PASSWORD = 'xhcvgbgamxhvaasj'      # ← 16-значний пароль застосунку Gmail
-DEFAULT_FROM_EMAIL = 'FlowerBooM rewino843@gmail.com'  # ← замінити
-
-# ─── PayPal Sandbox ───────────────────────────────────────────────────────────
-# Для тесту використовується Sandbox. Замініть на реальний client-id для production.
-# Отримати client-id: https://developer.paypal.com → My Apps & Credentials
-PAYPAL_CLIENT_ID = 'sb'   # 'sb' = sandbox demo; замінити на реальний client-id
-
-# ─── Сесії ────────────────────────────────────────────────────────────────────
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 86400  # 24 години
-
-# ─── ЛАБ 8: Авторизація ───────────────────────────────────────────────────────
-LOGIN_URL          = '/login/'
-LOGIN_REDIRECT_URL = '/cabinet/'
-LOGOUT_REDIRECT_URL = '/'

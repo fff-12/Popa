@@ -182,9 +182,36 @@
 </div>
 
 {# JS: підсвічування зірок при наведенні та виборі #}
+<<<<<<< HEAD
 {% block extra_js %}
 {% load static %}
 <script src="{% static 'shop/js/product_detail.js' %}"></script>
 {% endblock %}
+=======
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const labels = document.querySelectorAll('.star-label');
+    const inputs = document.querySelectorAll('input[name="rating"]');
+
+    function highlight(upTo) {
+        labels.forEach((lbl, idx) => {
+            lbl.style.color = idx <= upTo ? '#f5a623' : '#ccc';
+        });
+    }
+
+    inputs.forEach((inp, idx) => {
+        inp.addEventListener('change', () => highlight(idx));
+    });
+
+    labels.forEach((lbl, idx) => {
+        lbl.addEventListener('mouseover', () => highlight(idx));
+        lbl.addEventListener('mouseout', () => {
+            const checked = [...inputs].findIndex(i => i.checked);
+            highlight(checked >= 0 ? checked : -1);
+        });
+    });
+});
+</script>
+>>>>>>> 8c07882ba6a20f6962f51229330b4e18560393d8
 
 {% endblock %}

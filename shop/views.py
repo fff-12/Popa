@@ -2,16 +2,23 @@ import json
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+<<<<<<< HEAD
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+=======
+>>>>>>> 8c07882ba6a20f6962f51229330b4e18560393d8
 from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+<<<<<<< HEAD
 from .models import Category, Product, Customer, Order, OrderItem, ProductRating, PasswordResetCode
+=======
+from .models import Category, Product, Customer, Order, OrderItem, ProductRating
+>>>>>>> 8c07882ba6a20f6962f51229330b4e18560393d8
 
 
 def _is_valid_email(email: str) -> tuple[bool, str]:
@@ -270,7 +277,10 @@ def checkout(request):
 
             # ── створюємо замовлення ──
             order = Order.objects.create(
+<<<<<<< HEAD
                 user=request.user if request.user.is_authenticated else None,
+=======
+>>>>>>> 8c07882ba6a20f6962f51229330b4e18560393d8
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
@@ -408,6 +418,7 @@ def newsletter_subscribe(request):
         else:
             messages.error(request, 'Будь ласка, заповніть всі поля.')
     return redirect(request.META.get('HTTP_REFERER', 'home'))
+<<<<<<< HEAD
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -872,3 +883,5 @@ def admin_order_detail(request, order_id):
         'status_choices': Order.STATUS_CHOICES,
     })
     return render(request, 'shop/admin/order_detail.html', ctx)
+=======
+>>>>>>> 8c07882ba6a20f6962f51229330b4e18560393d8

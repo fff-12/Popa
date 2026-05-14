@@ -263,6 +263,7 @@
 {# PayPal SDK — підключаємо з client-id із settings.py #}
 <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&components=buttons"></script>
 
+<<<<<<< HEAD
 {% block extra_js %}
 {% load static %}
 <script>
@@ -274,5 +275,154 @@ window.CHECKOUT_DATA = {
 </script>
 <script src="{% static 'shop/js/checkout.js' %}"></script>
 {% endblock %}
+=======
+<script>
+const SUBTOTAL = parseFloat("{{ subtotal }}");
+const DELIVERY_COSTS = {
+    pickup:      0,
+    nova_poshta: 60,
+    ukrposhta:   40,
+    meest:       55,
+};
+
+// ── Підсвічування обраного варіанту доставки/оплати ──────────────────────
+function updateActiveCards(radioName, prefix) {
+    document.querySelectorAll(`input[name="${radioName}"]`).forEach(radio => {
+        const cardId = prefix + radio.value;
+        const card = document.getElementById(cardId);
+        if (card) card.classList.toggle('active', radio.checked);
+    });
+}
+
+// ── Оновлення вартості доставки в підсумку ───────────────────────────────
+function updateDeliveryCost() {
+    const selected = document.querySelector('input[name="delivery_method"]:checked');
+    const method   = selected ? selected.value : 'pickup';
+    const cost     = DELIVERY_COSTS[method] || 0;
+    const total    = SUBTOTAL + cost;
+
+    document.getElementById('delivery-cost-display').textContent =
+        cost === 0 ? 'Безкоштовно' : cost + ' грн';
+    document.getElementById('total-display').textContent = total.toFixed(0) + ' грн';
+
+    // показуємо/приховуємо поля міста
+    const addrBlock = document.getElementById('delivery-address-block');
+    addrBlock.style.display = (method === 'pickup') ? 'none' : 'block';
+
+    // робимо поле міста обов'язковим тільки для кур'єрської доставки
+    const cityField = document.getElementById('city_field');
+    cityField.required = (method !== 'pickup');
+}
+
+// ── Показуємо/приховуємо PayPal кнопку оплати ────────────────────────────
+function togglePaymentBlocks() {
+    const selected = document.querySelector('input[name="payment_method"]:checked');
+    const method   = selected ? selected.value : 'cash';
+    document.getElementById('paypal-payment-block').style.display =
+        method === 'paypal' ? 'block' : 'none';
+}
+
+// ── Слухачі ──────────────────────────────────────────────────────────────
+document.querySelectorAll('input[name="delivery_method"]').forEach(r => {
+    r.addEventListener('change', () => {
+        updateDeliveryCost();
+        updateActiveCards('delivery_method', 'card-');
+    });
+});
+
+document.querySelectorAll('input[name="payment_method"]').forEach(r => {
+    r.addEventListener('change', () => {
+        togglePaymentBlocks();
+        updateActiveCards('payment_method', 'pay-card-');
+    });
+});
+
+// ── PayPal кнопка: auto-fill + оплата ─────────────────────────────────────
+//
+// КНОПКА 1 — автозаповнення форми (показується у блоці контактів)
+// Після входу в PayPal ім'я і email підставляються в поля форми.
+//
+if (window.paypal) {
+    // -- Кнопка авто-заповнення у розділі «Контактні дані» --
+    paypal.Buttons({
+        style: { layout: 'horizontal', color: 'blue', shape: 'rect', label: 'paypal', height: 38 },
+
+        createOrder(data, actions) {
+            // Мінімальна сума для авторизації PayPal (не знімає гроші)
+            return actions.order.create({
+                purchase_units: [{ amount: { value: '0.01', currency_code: 'USD' } }]
+            });
+        },
+
+        onApprove(data, actions) {
+            return actions.order.capture().then(details => {
+                const payer = details.payer;
+                // Автозаповнення контактних полів
+                if (payer.name) {
+                    document.getElementById('first_name').value = payer.name.given_name || '';
+                    document.getElementById('last_name').value  = payer.name.surname || '';
+                }
+                if (payer.email_address) {
+                    document.getElementById('email_field').value = payer.email_address;
+                }
+                // Зберігаємо PayPal Order ID для запису в БД
+                document.getElementById('paypal_order_id').value = data.orderID;
+
+                // Автоматично вибираємо PayPal як спосіб оплати
+                document.querySelector('input[value="paypal"]').checked = true;
+                togglePaymentBlocks();
+                updateActiveCards('payment_method', 'pay-card-');
+
+                alert('✅ PayPal дані підтверджено! Ім\'я та email заповнені автоматично. Натисніть «Підтвердити замовлення».');
+            });
+        },
+
+        onError(err) { console.error('PayPal error:', err); }
+    }).render('#paypal-autofill-btn');
+
+    // -- Кнопка оплати у розділі «Спосіб оплати» --
+    paypal.Buttons({
+        style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'pay', height: 45 },
+
+        createOrder(data, actions) {
+            const deliveryRadio = document.querySelector('input[name="delivery_method"]:checked');
+            const deliveryCost  = DELIVERY_COSTS[deliveryRadio ? deliveryRadio.value : 'pickup'] || 0;
+            const totalUSD      = ((SUBTOTAL + deliveryCost) / 41).toFixed(2); // приблизний курс
+            return actions.order.create({
+                purchase_units: [{
+                    amount: { value: totalUSD, currency_code: 'USD' },
+                    description: 'FlowerBooM замовлення'
+                }]
+            });
+        },
+
+        onApprove(data, actions) {
+            return actions.order.capture().then(details => {
+                const payer = details.payer;
+                if (payer.name) {
+                    document.getElementById('first_name').value = payer.name.given_name || '';
+                    document.getElementById('last_name').value  = payer.name.surname || '';
+                }
+                if (payer.email_address) {
+                    document.getElementById('email_field').value = payer.email_address;
+                }
+                document.getElementById('paypal_order_id').value = data.orderID;
+
+                // Автоматично підтверджуємо форму
+                document.getElementById('checkout-form').submit();
+            });
+        },
+
+        onError(err) { console.error('PayPal payment error:', err); }
+    }).render('#paypal-payment-btn');
+}
+
+// ── Ініціалізація ─────────────────────────────────────────────────────────
+updateDeliveryCost();
+togglePaymentBlocks();
+updateActiveCards('delivery_method', 'card-');
+updateActiveCards('payment_method', 'pay-card-');
+</script>
+>>>>>>> 8c07882ba6a20f6962f51229330b4e18560393d8
 
 {% endblock %}

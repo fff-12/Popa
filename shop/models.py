@@ -1,9 +1,14 @@
 import random
 from django.db import models
+<<<<<<< HEAD
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+=======
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+>>>>>>> 8c07882ba6a20f6962f51229330b4e18560393d8
 
 
 class Category(models.Model):
@@ -148,12 +153,15 @@ class Order(models.Model):
         (PAYMENT_CARD,   'Банківська картка'),
     ]
 
+<<<<<<< HEAD
     # ── прив'язка до зареєстрованого користувача (необов'язково) ──
     user = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='orders', verbose_name="Користувач"
     )
 
+=======
+>>>>>>> 8c07882ba6a20f6962f51229330b4e18560393d8
     # ── поля контакту ──
     first_name = models.CharField(max_length=100, verbose_name="Ім'я")
     last_name  = models.CharField(max_length=100, verbose_name="Прізвище")
@@ -222,6 +230,7 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.name} × {self.quantity}"
+<<<<<<< HEAD
 
 
 # ─── ЛАБ 8: Код відновлення пароля ──────────────────────────────────────────
@@ -257,3 +266,5 @@ class PasswordResetCode(models.Model):
         cls.objects.filter(user=user, is_used=False).update(is_used=True)
         code = str(random.randint(100000, 999999))
         return cls.objects.create(user=user, code=code)
+=======
+>>>>>>> 8c07882ba6a20f6962f51229330b4e18560393d8

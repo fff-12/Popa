@@ -22,6 +22,7 @@ urlpatterns = [
 
     # Підписка на розсилку
     path('newsletter/subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
+<<<<<<< HEAD
 
     # ── ЛАБ 8: Авторизація ──
     path('register/', views.register_view, name='register'),
@@ -49,4 +50,6 @@ urlpatterns = [
     # Замовлення
     path('admin/orders/', views.admin_orders, name='admin_orders'),
     path('admin/order/<int:order_id>/', views.admin_order_detail, name='admin_order_detail'),
+=======
+>>>>>>> 8c07882ba6a20f6962f51229330b4e18560393d8
 ]
